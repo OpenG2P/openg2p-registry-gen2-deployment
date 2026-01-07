@@ -1,3 +1,4 @@
+{{- if .Values.benePortalApi.enabled }}
 {{- $values := .Values.benePortalApi -}}
 {{- $context := dict "Values" (merge (deepCopy $values) (dict "global" .Values.global)) "Chart" .Chart "Release" .Release "Files" .Files "Capabilities" .Capabilities -}}
 {{- with $context -}}
@@ -117,3 +118,4 @@ spec:
       volumes: {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
       {{- end }}
 {{- end -}}
+{{- end }}
