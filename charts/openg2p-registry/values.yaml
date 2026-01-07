@@ -1,8 +1,8 @@
 global:
-  registryHostname: registry.dev.openg2p.org
+  registryHostname: registry-gen2.dev.openg2p.org
 
   # Database
-  postgresqlHost: openg2p-commons-postgresql
+  postgresqlHost: commons-postgresql
   registryDB: '{{ .Release.Name }}_db'
   registryDBPort: 5432
   registryDBUser: '{{ .Release.Name }}_db_user'
@@ -13,10 +13,12 @@ global:
   redisInstallationName: '{{ .Release.Name }}-redis-master'
   
   # Minio
-  minioInstallationName: '{{ .Release.Name }}-minio'
+  minioInstallationName: commons-minio
+  minioAccessKey: root-user
+  minioSecretKey: root-password
     
   # Security & Authentication
-  keymanagerInstallationName: openg2p-commons-keymanager
+  keymanagerInstallationName: commons-keymanager
   keycloakBaseUrl: https://keycloak.openg2p.org
   keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
   
@@ -30,8 +32,7 @@ postgres-init:
   postgresql:
     host: '{{ .Values.global.postgresqlHost }}'
     port: 5432
-    # Hard coding. Same as one defined under Odoo
-    existingSecret: openg2p-commons-postgresql
+    existingSecret: commons-postgresql
     existingSecretPostgresPasswordKey: postgres-password
   databases:
     - name: '{{ tpl .Values.global.registryDB $ }}'
@@ -79,13 +80,23 @@ partnerApi:
     enabled: true
     virtualservice:
       enabled: true
+      host: ""
       gateway: "internal"
-      destination: '{{ template "common.names.fullname" . }}'
-      destinationPort: 80
+      destination: '{{ .Release.Name }}-partner-api'
+      destinationPort: '{{ .Values.partnerApi.service.port }}'
       prefix: '{{ .Values.openapiRootPath }}/'
       rewriteUri: "/"
     gateway:
       enabled: false
+      host: ""
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: false
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
   
   envVars:
     REGISTRY_PARTNER_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
@@ -102,11 +113,22 @@ partnerApi:
     REGISTRY_PARTNER_API_OAUTH_CLIENT_ID: '{{ tpl .Values.global.registryAuthClientId $ }}'
     REGISTRY_PARTNER_API_OAUTH_CLIENT_SECRET: '{{ .Values.global.registryAuthClientSecret }}'
 
+    REGISTRY_PARTNER_API_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
+    REGISTRY_PARTNER_API_MINIO_SECURE: "false"
+    REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_PARTNER_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    REGISTRY_PARTNER_API_MINIO_ACCESS_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioAccessKey $ }}'
+    REGISTRY_PARTNER_API_MINIO_SECRET_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioSecretKey $ }}'
 
   startupProbe:
     enabled: true
@@ -159,7 +181,7 @@ partnerApi:
 benePortalApi:
   enabled: true
   nameOverride: bene-portal-api
-  hostname: registry-bene-portal.openg2p.sandbox.net
+  hostname: '{{ tpl .Values.global.registryHostname $ }}'
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -195,24 +217,48 @@ benePortalApi:
     enabled: true
     virtualservice:
       enabled: true
+      host: ""
       gateway: "internal"
-      destination: '{{ template "common.names.fullname" . }}'
-      destinationPort: 80
+      destination: '{{ .Release.Name }}-bene-portal-api'
+      destinationPort: '{{ .Values.benePortalApi.service.port }}'
       prefix: '{{ .Values.openapiRootPath }}/'
       rewriteUri: "/"
     gateway:
       enabled: false
+      host: ""
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: false
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
   
   envVars:
     REGISTRY_BENE_PORTAL_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_BENE_PORTAL_API_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
     REGISTRY_BENE_PORTAL_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_BENE_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
+
+    REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
+
+    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
+    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_BENE_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    REGISTRY_BENE_PORTAL_API_MINIO_ACCESS_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioAccessKey $ }}'
+    REGISTRY_BENE_PORTAL_API_MINIO_SECRET_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioSecretKey $ }}'
 
   startupProbe:
     enabled: true
@@ -265,7 +311,7 @@ benePortalApi:
 staffPortalApi:
   enabled: true
   nameOverride: staff-portal-api
-  hostname: g2p-registry-staff-portal.dev.openg2p.org
+  hostname: '{{ tpl .Values.global.registryHostname $ }}'
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -296,29 +342,53 @@ staffPortalApi:
     type: ClusterIP
     port: 80
     externalTrafficPolicy: Cluster
-
+  
   istio:
     enabled: true
     virtualservice:
       enabled: true
+      host: ""
       gateway: "internal"
-      destination: '{{ template "common.names.fullname" . }}'
-      destinationPort: 80
+      destination: '{{ .Release.Name }}-staff-portal-api'
+      destinationPort: '{{ .Values.staffPortalApi.service.port }}'
       prefix: '{{ .Values.openapiRootPath }}/'
       rewriteUri: "/"
     gateway:
       enabled: false
+      host: ""
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: false
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
   
   envVars:
     REGISTRY_STAFF_PORTAL_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_STAFF_PORTAL_API_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
     REGISTRY_STAFF_PORTAL_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_STAFF_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
+
+    REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
+
+    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    REGISTRY_STAFF_PORTAL_API_MINIO_ACCESS_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioAccessKey $ }}'
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECRET_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioSecretKey $ }}'
 
   startupProbe:
     enabled: true
@@ -450,12 +520,18 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_BATCH_SIZE: 2000
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
-    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "localhost:9000"
-    REGISTRY_CELERY_WORKERS_MINIO_ACCESS_KEY: "admin"
-    REGISTRY_CELERY_WORKERS_MINIO_SECRET_KEY: "techno567"
+    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
     REGISTRY_CELERY_WORKERS_MINIO_SECURE: "false"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
+    REGISTRY_CELERY_WORKERS_MINIO_ACCESS_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioAccessKey $ }}'
+    REGISTRY_CELERY_WORKERS_MINIO_SECRET_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        key: '{{ tpl .Values.global.minioSecretKey $ }}'
     REGISTRY_CELERY_WORKERS_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
@@ -502,5 +578,3 @@ redis:
       enabled: false
   auth:
     enabled: false
-
-
