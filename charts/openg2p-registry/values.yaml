@@ -39,6 +39,8 @@ postgres-init:
       user: '{{ tpl .Values.global.registryDBUser $ }}'
       secret: '{{ tpl .Values.global.registryDBSecret $ }}'
       secretUserPasswordKey: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+      extensions:
+        - 'pg_trgm'
 
 partnerApi:
   enabled: true
