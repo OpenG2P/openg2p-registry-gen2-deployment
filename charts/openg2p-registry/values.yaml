@@ -19,7 +19,7 @@ global:
     
   # Security & Authentication
   keymanagerInstallationName: commons-keymanager
-  keycloakBaseUrl: https://keycloak.openg2p.org
+  keycloakBaseUrl: https://keycloak2.openg2p.org
   keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
   
   registryKeymanagerAuthEnabled: false

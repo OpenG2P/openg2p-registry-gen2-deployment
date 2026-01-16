@@ -19,9 +19,11 @@ spec:
   {{- end }}
   selector:
     matchLabels: {{- include "common.labels.matchLabels" (dict "customLabels" .Values.podLabels "context" $) | nindent 6 }}
+      app.kubernetes.io/component: partner-api
   template:
     metadata:
       labels: {{- include "common.labels.standard" (dict "customLabels" .Values.podLabels "context" $) | nindent 8 }}
+        app.kubernetes.io/component: partner-api
       {{- if .Values.podAnnotations }}
       annotations: {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
       {{- end }}
