@@ -1,5 +1,6 @@
 global:
-  registryHostname: farmer-registry-gen2.play.openg2p.org
+  registryVariant: 'family'
+  registryHostname: 'family-registry-gen2.dev.openg2p.org'
 
   # Database
   postgresqlHost: commons-postgresql
@@ -11,11 +12,11 @@ global:
   registryDBUserPasswordKey: '{{ .Release.Name }}_db_user'
 
   masterDataReleaseName: master-data
-  masterDataDB: '{{ .Values.global.masterDataReleaseName }}_db'
+  masterDataDB: 'master-data_db'
   masterDataDBPort: 5432
-  masterDataDBUser: '{{ .Values.global.masterDataReleaseName }}_db_user'
-  masterDataDBSecret: '{{ .Values.global.masterDataReleaseName }}'
-  masterDataDBUserPasswordKey: '{{ .Values.global.masterDataReleaseName }}_db_user'
+  masterDataDBUser: 'master-data_db_user'
+  masterDataDBSecret: 'master-data'
+  masterDataDBUserPasswordKey: 'master-data_db_user'
 
 
   # Redis
@@ -69,8 +70,8 @@ partnerApi:
     create: false
     name: ""
   image:
-    repository: tahzeer/openg2p-registry-partner-api
-    tag: "farmer"
+    repository: openg2p/openg2p-registry-partner-api
+    tag: "family"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -135,8 +136,8 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_APP_ID: '{{ .Values.global.registryKeymanagerAppId }}'
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
-    REGISTRY_PARTNER_API_MINIO_ENDPOINT: "{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_PARTNER_API_MINIO_SECURE: "false"
+    REGISTRY_PARTNER_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_PARTNER_API_MINIO_SECURE: "true"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_PARTNER_API_DB_PASSWORD:
@@ -221,8 +222,8 @@ benePortalApi:
     create: false
     name: ""
   image:
-    repository: tahzeer/openg2p-registry-bene-portal-api
-    tag: "farmer"
+    repository: openg2p/openg2p-registry-bene-portal-api
+    tag: "family"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -269,8 +270,8 @@ benePortalApi:
 
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: "{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_BENE_PORTAL_API_DB_PASSWORD:
@@ -351,8 +352,8 @@ staffPortalApi:
     create: false
     name: ""
   image:
-    repository: tahzeer/openg2p-registry-staff-portal-api
-    tag: "farmer"
+    repository: openg2p/openg2p-registry-staff-portal-api
+    tag: "family"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -397,23 +398,23 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_STAFF_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
 
-    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
-    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
-    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
-    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
-    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
 
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
-    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_PASSWORD:
+    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
         key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
@@ -475,12 +476,12 @@ staffPortalApi:
   containerPort: 8000
 
 celeryBeatProducer:
-  enabled: true
+  enabled: false
   nameOverride: celery-beat-producer
   replicaCount: 1
   image:
-    repository: tahzeer/openg2p-registry-celery-beat-producers
-    tag: "farmer"
+    repository: openg2p/openg2p-registry-celery-beat-producers
+    tag: "family"
     pullPolicy: Always
   
   envVars:
@@ -535,12 +536,12 @@ celeryBeatProducer:
     name: ""
 
 celeryWorker:
-  enabled: true
+  enabled: false
   nameOverride: celery-worker
   replicaCount: 1
   image:
-    repository: tahzeer/openg2p-registry-celery-workers
-    tag: "farmer"
+    repository: openg2p/openg2p-registry-celery-workers
+    tag: "family"
     pullPolicy: Always
 
   envVars:
@@ -562,8 +563,8 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_BATCH_SIZE: 2000
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
-    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "false"
+    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_CELERY_WORKERS_MINIO_ACCESS_KEY:
@@ -617,7 +618,7 @@ celeryWorker:
     name: ""
 
 redis:
-  enabled: true
+  enabled: false
   architecture: standalone
   master:
     persistence:
