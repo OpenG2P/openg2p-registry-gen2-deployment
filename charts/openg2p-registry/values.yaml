@@ -21,21 +21,26 @@ global:
 
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
-  
+
   # Minio
   minioInstallationName: commons-minio
   minioAccessKey: root-user
   minioSecretKey: root-password
-    
+
   # Security & Authentication
   keymanagerInstallationName: commons-keymanager
   keycloakBaseUrl: https://keycloak2.openg2p.org
   keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
-  
+
   registryKeymanagerAuthEnabled: false
   registryKeymanagerAppId: REGISTRY
-  registryAuthClientId: 'openg2p-registry-{{ .Release.Namespace }}'
-  registryAuthClientSecret: ''
+  # This is the typical default name of the client and secret
+  authClientId: 'openg2p-registry-{{ .Release.Namespace }}'
+  # Name of the secret in Kuberentes containing the password (DO NOT password directly here)
+  # Same name as client id by convension.
+  authClientSecret: '{{ tpl .Values.global.authClientId $ }}'
+  # Key containing client password. Hardcoded in Keycloak Init script
+  authClientSecretKey: 'client_secret'
 
 postgres-init:
   enabled: true
@@ -109,7 +114,7 @@ partnerApi:
       tls:
         mode: SIMPLE
         credentialName: ""
-  
+
   envVars:
     REGISTRY_PARTNER_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_PARTNER_API_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
@@ -156,6 +161,10 @@ partnerApi:
       secretKeyRef:
         name: '{{ tpl .Values.global.minioInstallationName $ }}'
         key: '{{ tpl .Values.global.minioSecretKey $ }}'
+    REGISTRY_PARTNER_API_OAUTH_CLIENT_SECRET:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.authClientSecret $ }}'
+        key: '{{ tpl .Values.global.authClientSecretKey $ }}'
 
   startupProbe:
     enabled: true
@@ -187,7 +196,7 @@ partnerApi:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  
+
   postgresCheckerInit:
     enabled: true
     image:
@@ -261,7 +270,7 @@ benePortalApi:
       tls:
         mode: SIMPLE
         credentialName: ""
-  
+
   envVars:
     REGISTRY_BENE_PORTAL_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_BENE_PORTAL_API_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
@@ -317,7 +326,7 @@ benePortalApi:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  
+
   postgresCheckerInit:
     enabled: true
     image:
@@ -369,7 +378,7 @@ staffPortalApi:
     type: ClusterIP
     port: 80
     externalTrafficPolicy: Cluster
-  
+
   istio:
     enabled: true
     virtualservice:
@@ -391,7 +400,7 @@ staffPortalApi:
       tls:
         mode: SIMPLE
         credentialName: ""
-  
+
   envVars:
     REGISTRY_STAFF_PORTAL_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_STAFF_PORTAL_API_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
@@ -457,7 +466,7 @@ staffPortalApi:
     timeoutSeconds: 5
     failureThreshold: 6
     successThreshold: 1
-  
+
   postgresCheckerInit:
     enabled: true
     image:
@@ -483,7 +492,7 @@ celeryBeatProducer:
     repository: openg2p/openg2p-registry-celery-beat-producers
     tag: "family"
     pullPolicy: Always
-  
+
   envVars:
     REGISTRY_CELERY_BEAT_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_CELERY_BEAT_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'

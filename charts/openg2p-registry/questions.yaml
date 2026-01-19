@@ -48,13 +48,13 @@ questions:
   label: Keycloak Issuer URL
   group: Keycloak
 
-- variable: global.registryAuthClientId
+- variable: global.authClientId
   description: OIDC Client ID for Registry
   type: string
   label: OIDC Client ID
   group: Keycloak
 
-- variable: global.registryAuthClientSecret
+- variable: global.authClientSecret
   description: OIDC Client Secret for Registry
   type: string
   label: OIDC Client Secret
@@ -70,19 +70,19 @@ questions:
 - variable: global.registryDB
   description: Registry Database
   type: string
-  label: Registry Database 
+  label: Registry Database
   group: Registry Database
 
 - variable: global.registryDBUser
   description: Registry database user
   type: string
-  label: Registry Database User 
+  label: Registry Database User
   group: Registry Database
 
 - variable: global.registryDBSecret
   description: Registry database user Kubernetes secret
   type: string
-  label: Registry Database User Secret 
+  label: Registry Database User Secret
   group: Registry Database
 
 - variable: global.registryDBUserPasswordKey

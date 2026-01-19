@@ -5,9 +5,7 @@ on:
     tags:
       - '**'
     branches-ignore:
-      - develop
       - main
-
 
 jobs:
   generate-charts:
