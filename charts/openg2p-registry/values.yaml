@@ -1,13 +1,23 @@
 global:
-  registryHostname: registry-gen2.dev.openg2p.org
+  registryVariant: 'family'
+  registryHostname: 'family-registry-gen2.dev.openg2p.org'
 
   # Database
   postgresqlHost: commons-postgresql
+
   registryDB: '{{ .Release.Name }}_db'
   registryDBPort: 5432
   registryDBUser: '{{ .Release.Name }}_db_user'
   registryDBSecret: '{{ .Release.Name }}'
   registryDBUserPasswordKey: '{{ .Release.Name }}_db_user'
+
+  masterDataReleaseName: master-data
+  masterDataDB: 'master-data_db'
+  masterDataDBPort: 5432
+  masterDataDBUser: 'master-data_db_user'
+  masterDataDBSecret: 'master-data'
+  masterDataDBUserPasswordKey: 'master-data_db_user'
+
 
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
@@ -50,7 +60,7 @@ postgres-init:
 partnerApi:
   enabled: true
   nameOverride: partner-api
-  hostname: '{{ tpl .Values.global.registryHostname $ }}'
+  hostname: 'partner-{{ tpl .Values.global.registryHostname $ }}'
 
   replicaCount: 1
   autoscaling:
@@ -66,7 +76,7 @@ partnerApi:
     name: ""
   image:
     repository: openg2p/openg2p-registry-partner-api
-    tag: "develop"
+    tag: "family"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -75,9 +85,9 @@ partnerApi:
     enabled: false
     runAsUser: 1001
     runAsNonRoot: true
-
-  openapiRootPath: /api/partner
-
+  
+  openapiRootPath: /
+  
   service:
     type: ClusterIP
     port: 80
@@ -87,7 +97,7 @@ partnerApi:
     enabled: true
     virtualservice:
       enabled: true
-      host: ""
+      host: '{{ tpl .Values.partnerApi.hostname $ }}'
       gateway: "internal"
       destination: '{{ .Release.Name }}-partner-api'
       destinationPort: '{{ .Values.partnerApi.service.port }}'
@@ -95,7 +105,7 @@ partnerApi:
       rewriteUri: "/"
     gateway:
       enabled: false
-      host: ""
+      host: '{{ tpl .Values.partnerApi.hostname $ }}'
       ingressController:
         istio: ingressgateway
       httpTlsRedirect: false
@@ -111,21 +121,38 @@ partnerApi:
     REGISTRY_PARTNER_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_PARTNER_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
     REGISTRY_PARTNER_API_PORT: '{{ .Values.containerPort }}'
+
     REGISTRY_PARTNER_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_PARTNER_API_JWT_VALIDATE_KEYMANAGER_APP_ID: '{{ .Values.global.registryKeymanagerAppId }}'
-    REGISTRY_PARTNER_API_KEYMANAGER_API_BASE_URL: "http://{{ .Values.global.keymanagerInstallationName }}/v1/keymanager"
-    REGISTRY_PARTNER_API_OAUTH_ENABLED: '{{ .Values.global.registryKeymanagerAuthEnabled }}'
-    REGISTRY_PARTNER_API_OAUTH_URL: "{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/token"
-    REGISTRY_PARTNER_API_OAUTH_CLIENT_ID: '{{ tpl .Values.global.authClientId $ }}'
-    REGISTRY_PARTNER_API_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_PARTNER_API_MINIO_SECURE: "false"
+    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+    
+    REGISTRY_PARTNER_API_KEYMANAGER_API_BASE_URL: "{{ .Values.global.keymanagerInstallationName }}/v1/keymanager"
+    REGISTRY_PARTNER_API_KEYMANAGER_API_TIMEOUT: 10
+    REGISTRY_PARTNER_API_KEYMANAGER_API_DOMAIN: "AUTH"
+    REGISTRY_PARTNER_API_KEYMANAGER_SSL_VERIFY: False
+    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_ENABLED: '{{ .Values.global.registryKeymanagerAuthEnabled }}'
+    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_URL: "{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/token"
+    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_CLIENT_ID: '{{ tpl .Values.global.registryAuthClientId $ }}'
+    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_CLIENT_SECRET: '{{ .Values.global.registryAuthClientSecret }}'
+    REGISTRY_PARTNER_API_KEYMANAGER_SIGN_APP_ID: '{{ .Values.global.registryKeymanagerAppId }}'
+    REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
+
+    REGISTRY_PARTNER_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_PARTNER_API_MINIO_SECURE: "true"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_PARTNER_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
+        key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
     REGISTRY_PARTNER_API_MINIO_ACCESS_KEY:
       secretKeyRef:
         name: '{{ tpl .Values.global.minioInstallationName $ }}'
@@ -188,9 +215,9 @@ partnerApi:
   containerPort: 8000
 
 benePortalApi:
-  enabled: true
+  enabled: false
   nameOverride: bene-portal-api
-  hostname: '{{ tpl .Values.global.registryHostname $ }}'
+  hostname: 'bene-{{ tpl .Values.global.registryHostname $ }}'
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -205,7 +232,7 @@ benePortalApi:
     name: ""
   image:
     repository: openg2p/openg2p-registry-bene-portal-api
-    tag: "develop"
+    tag: "family"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -214,9 +241,9 @@ benePortalApi:
     enabled: false
     runAsUser: 1001
     runAsNonRoot: true
-
-  openapiRootPath: /api/bene-portal
-
+  
+  openapiRootPath: /
+  
   service:
     type: ClusterIP
     port: 80
@@ -252,8 +279,8 @@ benePortalApi:
 
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_BENE_PORTAL_API_DB_PASSWORD:
@@ -320,7 +347,7 @@ benePortalApi:
 staffPortalApi:
   enabled: true
   nameOverride: staff-portal-api
-  hostname: '{{ tpl .Values.global.registryHostname $ }}'
+  hostname: 'staff-{{ tpl .Values.global.registryHostname $ }}'
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -335,7 +362,7 @@ staffPortalApi:
     name: ""
   image:
     repository: openg2p/openg2p-registry-staff-portal-api
-    tag: "develop"
+    tag: "family"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -344,9 +371,9 @@ staffPortalApi:
     enabled: false
     runAsUser: 1001
     runAsNonRoot: true
-
-  openapiRootPath: /api/staff-portal
-
+  
+  openapiRootPath: /
+  
   service:
     type: ClusterIP
     port: 80
@@ -356,7 +383,7 @@ staffPortalApi:
     enabled: true
     virtualservice:
       enabled: true
-      host: ""
+      host: '{{ tpl .Values.staffPortalApi.hostname $ }}'
       gateway: "internal"
       destination: '{{ .Release.Name }}-staff-portal-api'
       destinationPort: '{{ .Values.staffPortalApi.service.port }}'
@@ -364,7 +391,7 @@ staffPortalApi:
       rewriteUri: "/"
     gateway:
       enabled: false
-      host: ""
+      host: '{{ tpl .Values.staffPortalApi.hostname $ }}'
       ingressController:
         istio: ingressgateway
       httpTlsRedirect: false
@@ -380,16 +407,26 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_STAFF_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
 
+    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
+        key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_ACCESS_KEY:
       secretKeyRef:
         name: '{{ tpl .Values.global.minioInstallationName $ }}'
@@ -453,7 +490,7 @@ celeryBeatProducer:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-registry-celery-beat-producers
-    tag: "develop"
+    tag: "family"
     pullPolicy: Always
 
   envVars:
@@ -461,7 +498,7 @@ celeryBeatProducer:
     REGISTRY_CELERY_BEAT_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
     REGISTRY_CELERY_BEAT_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_CELERY_BEAT_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
-
+  
     REGISTRY_CELERY_BEAT_CELERY_BROKER_URL: redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0
     REGISTRY_CELERY_BEAT_CELERY_BACKEND_URL: redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0
 
@@ -513,7 +550,7 @@ celeryWorker:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-registry-celery-workers
-    tag: "develop"
+    tag: "family"
     pullPolicy: Always
 
   envVars:
@@ -522,6 +559,12 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_DB_PORT: 5432
     REGISTRY_CELERY_WORKERS_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
 
+    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+
     REGISTRY_CELERY_WORKERS_CELERY_BROKER_URL: "redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0"
     REGISTRY_CELERY_WORKERS_CELERY_BACKEND_URL: "redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0"
     REGISTRY_CELERY_WORKERS_WORKER_QUEUE: "registry_worker_queue"
@@ -529,8 +572,8 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_BATCH_SIZE: 2000
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
-    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "http://{{ .Values.global.minioInstallationName }}:9000"
-    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "false"
+    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_CELERY_WORKERS_MINIO_ACCESS_KEY:
@@ -545,6 +588,10 @@ celeryWorker:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
+        key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
 
   postgresCheckerInit:
     enabled: true
