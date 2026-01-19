@@ -485,7 +485,7 @@ staffPortalApi:
   containerPort: 8000
 
 celeryBeatProducer:
-  enabled: false
+  enabled: true
   nameOverride: celery-beat-producer
   replicaCount: 1
   image:
@@ -545,7 +545,7 @@ celeryBeatProducer:
     name: ""
 
 celeryWorker:
-  enabled: false
+  enabled: true
   nameOverride: celery-worker
   replicaCount: 1
   image:
@@ -627,7 +627,7 @@ celeryWorker:
     name: ""
 
 redis:
-  enabled: false
+  enabled: true
   architecture: standalone
   master:
     persistence:
