@@ -18,7 +18,6 @@ global:
   masterDataDBSecret: 'master-data'
   masterDataDBUserPasswordKey: 'master-data_db_user'
 
-
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
 
@@ -85,9 +84,9 @@ partnerApi:
     enabled: false
     runAsUser: 1001
     runAsNonRoot: true
-  
+
   openapiRootPath: /
-  
+
   service:
     type: ClusterIP
     port: 80
@@ -129,7 +128,7 @@ partnerApi:
     REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
-    
+
     REGISTRY_PARTNER_API_KEYMANAGER_API_BASE_URL: "{{ .Values.global.keymanagerInstallationName }}/v1/keymanager"
     REGISTRY_PARTNER_API_KEYMANAGER_API_TIMEOUT: 10
     REGISTRY_PARTNER_API_KEYMANAGER_API_DOMAIN: "AUTH"
@@ -243,9 +242,9 @@ benePortalApi:
     enabled: false
     runAsUser: 1001
     runAsNonRoot: true
-  
+
   openapiRootPath: /
-  
+
   service:
     type: ClusterIP
     port: 80
@@ -373,9 +372,9 @@ staffPortalApi:
     enabled: false
     runAsUser: 1001
     runAsNonRoot: true
-  
+
   openapiRootPath: /
-  
+
   service:
     type: ClusterIP
     port: 80
@@ -489,7 +488,7 @@ staffPortalApi:
   containerPort: 8000
 
 celeryBeatProducer:
-  enabled: true 
+  enabled: true
   nameOverride: celery-beat-producer
   replicaCount: 1
   image:
@@ -502,7 +501,7 @@ celeryBeatProducer:
     REGISTRY_CELERY_BEAT_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
     REGISTRY_CELERY_BEAT_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_CELERY_BEAT_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
-  
+
     REGISTRY_CELERY_BEAT_CELERY_BROKER_URL: redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0
     REGISTRY_CELERY_BEAT_CELERY_BACKEND_URL: redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0
 
