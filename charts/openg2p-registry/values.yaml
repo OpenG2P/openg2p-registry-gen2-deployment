@@ -75,7 +75,7 @@ partnerApi:
     name: ""
   image:
     repository: openg2p/openg2p-farmer-registry-partner-api
-    tag: "4082"
+    tag: "develop"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -363,7 +363,7 @@ staffPortalApi:
     name: ""
   image:
     repository: openg2p/openg2p-farmer-registry-staff-portal-api
-    tag: "4082"
+    tag: "develop"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -493,7 +493,7 @@ celeryBeatProducer:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-farmer-registry-celery
-    tag: 4082
+    tag: "develop"
     pullPolicy: Always
 
   envVars:
@@ -555,7 +555,7 @@ celeryWorker:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-farmer-registry-celery
-    tag: "4082"
+    tag: "develop"
     pullPolicy: Always
 
   envVars:
