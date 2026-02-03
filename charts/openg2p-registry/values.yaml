@@ -580,6 +580,9 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "minio.dev.openg2p.org"
     REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
+    CELERY_APP: "openg2p_registry_celery_workers.main.celery_app"
+    CELERY_OPTS: "worker -Q registry_worker_queue --loglevel=info"
+
   envVarsFrom:
     REGISTRY_CELERY_WORKERS_MINIO_ACCESS_KEY:
       secretKeyRef:
