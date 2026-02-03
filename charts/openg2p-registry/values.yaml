@@ -1,6 +1,6 @@
 global:
-  registryVariant: 'family'
-  registryHostname: 'family-registry-gen2.dev.openg2p.org'
+  registryVariant: 'farmer'
+  registryHostname: 'farmer-registry-gen2.dev.openg2p.org'
 
   # Database
   postgresqlHost: commons-postgresql
@@ -35,7 +35,7 @@ global:
   registryKeymanagerAuthEnabled: false
   registryKeymanagerAppId: REGISTRY
   # This is the typical default name of the client and secret
-  authClientId: 'openg2p-registry-{{ .Release.Namespace }}'
+  authClientId: 'openg2p-sr-{{ .Release.Namespace }}'
   # Name of the secret in Kuberentes containing the password (DO NOT password directly here)
   # Same name as client id by convension.
   authClientSecret: '{{ tpl .Values.global.authClientId $ }}'
@@ -43,7 +43,7 @@ global:
   authClientSecretKey: 'client_secret'
 
 postgres-init:
-  enabled: true
+  enabled: false
   postgresql:
     host: '{{ .Values.global.postgresqlHost }}'
     port: 5432
@@ -75,8 +75,8 @@ partnerApi:
     create: false
     name: ""
   image:
-    repository: openg2p/openg2p-registry-partner-api
-    tag: "family"
+    repository: openg2p/openg2p-farmer-registry-partner-api
+    tag: "4082"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -136,8 +136,7 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SSL_VERIFY: False
     REGISTRY_PARTNER_API_KEYMANAGER_AUTH_ENABLED: '{{ .Values.global.registryKeymanagerAuthEnabled }}'
     REGISTRY_PARTNER_API_KEYMANAGER_AUTH_URL: "{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/token"
-    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_CLIENT_ID: '{{ tpl .Values.global.registryAuthClientId $ }}'
-    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_CLIENT_SECRET: '{{ .Values.global.registryAuthClientSecret }}'
+    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_CLIENT_ID: '{{ tpl .Values.global.authClientId $ }}'
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_APP_ID: '{{ .Values.global.registryKeymanagerAppId }}'
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
@@ -165,7 +164,10 @@ partnerApi:
       secretKeyRef:
         name: '{{ tpl .Values.global.authClientSecret $ }}'
         key: '{{ tpl .Values.global.authClientSecretKey $ }}'
-
+    REGISTRY_PARTNER_API_KEYMANAGER_AUTH_CLIENT_SECRET:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.authClientSecret $ }}'
+        key: '{{ tpl .Values.global.authClientSecretKey $ }}'
   startupProbe:
     enabled: true
     httpGet:
@@ -361,8 +363,8 @@ staffPortalApi:
     create: false
     name: ""
   image:
-    repository: openg2p/openg2p-registry-staff-portal-api
-    tag: "family"
+    repository: openg2p/openg2p-farmer-registry-staff-portal-api
+    tag: "4082"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -415,9 +417,11 @@ staffPortalApi:
 
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
+    # TODO add this to global
     REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
     REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
+
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
@@ -485,12 +489,12 @@ staffPortalApi:
   containerPort: 8000
 
 celeryBeatProducer:
-  enabled: true
+  enabled: true 
   nameOverride: celery-beat-producer
   replicaCount: 1
   image:
-    repository: openg2p/openg2p-registry-celery-beat-producers
-    tag: "family"
+    repository: openg2p/openg2p-farmer-registry-celery
+    tag: 4082
     pullPolicy: Always
 
   envVars:
@@ -512,6 +516,8 @@ celeryBeatProducer:
     REGISTRY_CELERY_BEAT_OUTGEST_DATA_PUBLISH_BEAT_PRODUCER_FREQUENCY: 20
     REGISTRY_CELERY_BEAT_OUTGEST_TOPIC_REGISTER_BEAT_PRODUCER_FREQUENCY: 20
     REGISTRY_CELERY_BEAT_DEDUPLICATION_BEAT_PRODUCER_FREQUENCY: 30
+    CELERY_APP: "openg2p_registry_celery_beat_producers.main.celery_app"
+    CELERY_OPTS: "worker --beat --loglevel=info --schedule=/tmp/celery-beat-schedule.db"
 
   envVarsFrom:
     REGISTRY_CELERY_BEAT_DB_PASSWORD:
@@ -549,8 +555,8 @@ celeryWorker:
   nameOverride: celery-worker
   replicaCount: 1
   image:
-    repository: openg2p/openg2p-registry-celery-workers
-    tag: "family"
+    repository: openg2p/openg2p-farmer-registry-celery
+    tag: "4082"
     pullPolicy: Always
 
   envVars:
