@@ -1,4 +1,6 @@
 questions:
+# TODO: master data, redis,
+
 - variable: global.registryHostname
   description: Hostname under which all Registry services will be accessed
   type: string

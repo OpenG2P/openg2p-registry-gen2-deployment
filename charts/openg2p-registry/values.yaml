@@ -5,18 +5,20 @@ global:
   # Database
   postgresqlHost: commons-postgresql
 
-  registryDB: '{{ .Release.Name }}_db'
+  #registryDB: '{{ .Release.Name }}_db'
+  registryDB:  '{{ printf "%s" .Release.Name | replace "-" "_" }}'
   registryDBPort: 5432
-  registryDBUser: '{{ .Release.Name }}_db_user'
+  #registryDBUser: '{{ .Release.Name }}_db_user'
+  registryDBUser: '{{ printf "%s_user" .Release.Name | replace "-" "_" }}'
   registryDBSecret: '{{ .Release.Name }}'
   registryDBUserPasswordKey: '{{ .Release.Name }}_db_user'
 
-  masterDataReleaseName: master-data
-  masterDataDB: 'master-data_db'
+  #masterDataReleaseName: master-data-master-data-api
+  masterDataDB: 'master_data'
   masterDataDBPort: 5432
-  masterDataDBUser: 'master-data_db_user'
+  masterDataDBUser: 'master_data_user'
   masterDataDBSecret: 'master-data'
-  masterDataDBUserPasswordKey: 'master-data_db_user'
+  masterDataDBUserPasswordKey: 'master-data-db-user'
 
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
@@ -25,6 +27,7 @@ global:
   minioInstallationName: commons-minio
   minioAccessKey: root-user
   minioSecretKey: root-password
+  minioHost: minio.qa.openg2p.org
 
   # Security & Authentication
   keymanagerInstallationName: commons-keymanager
@@ -42,7 +45,7 @@ global:
   authClientSecretKey: 'client_secret'
 
 postgres-init:
-  enabled: false
+  enabled: true
   postgresql:
     host: '{{ .Values.global.postgresqlHost }}'
     port: 5432
@@ -139,7 +142,7 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_APP_ID: '{{ .Values.global.registryKeymanagerAppId }}'
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
-    REGISTRY_PARTNER_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
     REGISTRY_PARTNER_API_MINIO_SECURE: "true"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
@@ -280,7 +283,7 @@ benePortalApi:
 
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
     REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
@@ -416,8 +419,7 @@ staffPortalApi:
 
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    # TODO add this to global
-    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
 
@@ -577,7 +579,7 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_BATCH_SIZE: 2000
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
-    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: "minio.dev.openg2p.org"
+    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
     REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
     CELERY_APP: "openg2p_registry_celery_workers.main.celery_app"
