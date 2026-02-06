@@ -489,6 +489,116 @@ staffPortalApi:
   postgresqlInstallationName: '{{ .Release.Name }}-postgresql'
   containerPort: 8000
 
+staffPortalUi:
+  enabled: true
+  nameOverride: staff-portal-ui
+  hostname: 'registry-{{ .Values.global.registryHostname }}'
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  updateStrategy:
+    type: RollingUpdate
+  serviceAccount:
+    create: false
+    name: ""
+  image:
+    repository: openg2p/openg2p-registry-staff-portal-ui
+    tag: "develop"
+    pullPolicy: Always
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1001
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1001
+    runAsNonRoot: true
+
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+
+  containerPort: 3000
+
+  istio:
+    enabled: true
+    virtualservice:
+      enabled: true
+      host: 'registry-{{ .Values.global.registryHostname }}'
+      gateway: "internal"
+      destination: '{{ .Release.Name }}-staff-portal-ui'
+      destinationPort: '{{ .Values.service.port }}'
+      prefix: '/'
+      rewriteUri: "/"
+    gateway:
+      enabled: false
+      host: 'registry-{{ .Values.global.registryHostname }}'
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: false
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
+
+  # Configuration parameters
+  masterDataBackendApiUrl: https://gen2-master-data.dev.openg2p.org
+  partnerIngestUrl: "https://partner-family-registry-gen2.play.openg2p.org/partner/ingest_data?data_model=dcivc"
+  vpPresentationId: "7f3c2a91-bb84-4d1f-9a6e-41c8e5a0d9f2"
+  vpPurpose: "Digital identity verification for registry onboarding"
+
+  envVars:
+    APP_MNEMONIC: registry-ui
+    APP_URL: 'https://registry-{{ .Values.global.registryHostname }}'
+    BACKEND_API_URL: 'https://staff-{{ .Values.global.registryHostname }}'
+    HOSTNAME: 0.0.0.0
+    MASTERDATA_BACKEND_API_URL: '{{ .Values.masterDataBackendApiUrl }}'
+    NODE_ENV: production
+    PARTNER_IMPORT_EXPORT_ENABLE: 'true'
+    PARTNER_INGEST_URL: '{{ .Values.partnerIngestUrl }}'
+    VERIFY_SERVICE_URL: 'https://registry-{{ .Values.global.registryHostname }}/v1/verify'
+    VP_CLIENT_ID: 'did:web:registry-{{ .Values.global.registryHostname }}:v1:verify'
+    VP_PRESENTATION_ID: '{{ .Values.vpPresentationId }}'
+    VP_PURPOSE: '{{ .Values.vpPurpose }}'
+
+  envVarsFrom: {}
+
+  startupProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
 celeryBeatProducer:
   enabled: true
   nameOverride: celery-beat-producer
