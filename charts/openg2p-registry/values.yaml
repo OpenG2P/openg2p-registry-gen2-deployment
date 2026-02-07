@@ -1,6 +1,6 @@
 global:
   registryVariant: 'farmer'
-  registryHostname: 'farmer-registry-gen2.dev.openg2p.org'
+  registryHostname: 'farmer-registry-gen2.qa.openg2p.org'
 
   # Database
   postgresqlHost: commons-postgresql
@@ -492,7 +492,7 @@ staffPortalApi:
 staffPortalUi:
   enabled: true
   nameOverride: staff-portal-ui
-  hostname: 'registry-{{ .Values.global.registryHostname }}'
+  hostname: '{{ .Values.global.registryHostname }}'
   replicaCount: 1
   autoscaling:
     enabled: false
