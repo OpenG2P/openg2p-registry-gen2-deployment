@@ -528,7 +528,7 @@ staffPortalUi:
     enabled: true
     virtualservice:
       enabled: true
-      host: 'registry-{{ .Values.global.registryHostname }}'
+      host: '{{ .Values.global.registryHostname }}'
       gateway: "internal"
       destination: '{{ .Release.Name }}-staff-portal-ui'
       destinationPort: '{{ .Values.service.port }}'
@@ -536,7 +536,7 @@ staffPortalUi:
       rewriteUri: "/"
     gateway:
       enabled: false
-      host: 'registry-{{ .Values.global.registryHostname }}'
+      host: '{{ .Values.global.registryHostname }}'
       ingressController:
         istio: ingressgateway
       httpTlsRedirect: false
@@ -554,15 +554,15 @@ staffPortalUi:
 
   envVars:
     APP_MNEMONIC: registry-ui
-    APP_URL: 'https://registry-{{ .Values.global.registryHostname }}'
+    APP_URL: 'https://{{ .Values.global.registryHostname }}'
     BACKEND_API_URL: 'https://staff-{{ .Values.global.registryHostname }}'
     HOSTNAME: 0.0.0.0
     MASTERDATA_BACKEND_API_URL: '{{ .Values.masterDataBackendApiUrl }}'
     NODE_ENV: production
     PARTNER_IMPORT_EXPORT_ENABLE: 'true'
     PARTNER_INGEST_URL: '{{ .Values.partnerIngestUrl }}'
-    VERIFY_SERVICE_URL: 'https://registry-{{ .Values.global.registryHostname }}/v1/verify'
-    VP_CLIENT_ID: 'did:web:registry-{{ .Values.global.registryHostname }}:v1:verify'
+    VERIFY_SERVICE_URL: 'https://{{ .Values.global.registryHostname }}/v1/verify'
+    VP_CLIENT_ID: 'did:web:{{ .Values.global.registryHostname }}:v1:verify'
     VP_PRESENTATION_ID: '{{ .Values.vpPresentationId }}'
     VP_PURPOSE: '{{ .Values.vpPurpose }}'
 
