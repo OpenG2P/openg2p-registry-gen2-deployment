@@ -37,7 +37,7 @@ global:
   registryKeymanagerAuthEnabled: false
   registryKeymanagerAppId: REGISTRY
   # This is the typical default name of the client and secret
-  authClientId: 'openg2p-sr-{{ .Release.Namespace }}'
+  authClientId: 'openg2p-registry-{{ .Release.Namespace }}'
   # Name of the secret in Kuberentes containing the password (DO NOT password directly here)
   # Same name as client id by convension.
   authClientSecret: '{{ tpl .Values.global.authClientId $ }}'
