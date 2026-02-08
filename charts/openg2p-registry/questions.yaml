@@ -1,16 +1,28 @@
 questions:
-# TODO: master data, redis,
 
+# General
 - variable: global.registryHostname
   description: Hostname under which all Registry services will be accessed
   type: string
   label: Registry Hostname
   group: General
 
-- variable: partnerApi.enabled
-  description: Install Partner API
-  type: boolean
-  label: Partner API
+- variable: global.postgresqlHost
+  description: PostgreSQL server host
+  type: string
+  label: PostreSQL Server Host
+  group: General
+
+- variable: postgres-init.enabled
+  description: Run Postgres init
+  type: string
+  label: Postgres Init 
+  group: General
+
+- variable: global.keymanagerInstallationName
+  description: Name of the Keymanager service
+  type: string
+  label: Keymanager Service
   group: General
 
 - variable: staffPortalApi.enabled
@@ -19,35 +31,56 @@ questions:
   label: Staff Portal API
   group: General
 
+- variable: staffPortalUi.enabled
+  description: Install Staff Portal UI
+  type: boolean
+  label: Staff Portal UI
+  group: General
+
+- variable: partnerApi.enabled
+  description: Install Partner API
+  type: boolean
+  label: Partner API
+  group: General
+
 - variable: benePortalApi.enabled
   description: Install Beneficiary Portal API
   type: boolean
   label: Beneficiary Portal API
   group: General
 
-- variable: celeryBeatProducer.enabled
-  description: Install Celery Beat Producers
-  type: boolean
-  label: Celery Beat Producers
-  group: General
 
-- variable: celeryWorker.enabled
-  description: Install Celery Workers
-  type: boolean
-  label: Celery Workers
-  group: General
+# Master data
+  masterDataDBUserPasswordKey: 'master-data-db-user'
+- variable: global.masterDataDB
+  descriptiol: Name of the master data database
+  type: string
+  label: Master Data DB 
+  group: Master Data
+
+- variable: global.masterDataDBUser
+  descriptiol: Name of the master data database user name
+  type: string
+  label: Master Data DB User 
+  group: Master Data
+
+- variable: global.masterDataDBSecret
+  descriptiol: Kubernetes secret that holds master data's database user's password 
+  type: string
+  label: Master Data DB User Secret
+  group: Master Data
+
+- variable: global.masterDataDBUserPasswordKey
+  descriptiol: Password key that holds user password in the above secret
+  type: string
+  label: Master Data DB User Password Key
+  group: Master Data
 
 # Keycloak
 - variable: global.keycloakBaseUrl
   description: Keycloak Base Url used in all components
   type: string
   label: Keycloak Base URL
-  group: Keycloak
-
-- variable: global.keycloakIssuerUrl
-  description: Keycloak Issuer URL
-  type: string
-  label: Keycloak Issuer URL
   group: Keycloak
 
 - variable: global.authClientId
@@ -57,63 +90,39 @@ questions:
   group: Keycloak
 
 - variable: global.authClientSecret
-  description: OIDC Client Secret for Registry
+  description: Kubernetes secret holding OIDC client password 
   type: string
-  label: OIDC Client Secret
+  label: OIDC Client Secret Name
   group: Keycloak
 
-# Registry DB
-- variable: global.postgresqlHost
-  description: Registry database hostname
+- variable: global.authClientSecretKey
+  description: Key in above secret containing client password
   type: string
-  label: Registry Database Hostname
-  group: Registry Database
+  label: OIDC Client Secret Key
+  group: Keycloak
 
-- variable: global.registryDB
-  description: Registry Database
+# Minio
+- variable: global.minioHost
+  description: Minio domain (host) name
   type: string
-  label: Registry Database
-  group: Registry Database
+  label: Minio Domain Name
+  group: MinIO
 
-- variable: global.registryDBUser
-  description: Registry database user
+- variable: global.minioSecret
+  description: Secret containing access keys
   type: string
-  label: Registry Database User
-  group: Registry Database
+  label: Minio Secret
+  group: MinIO
 
-- variable: global.registryDBSecret
-  description: Registry database user Kubernetes secret
+- variable: global.minioAccessKey
+  description: Minio access key in the above secret
   type: string
-  label: Registry Database User Secret
-  group: Registry Database
+  label: Minio Access Key
+  group: MinIO
 
-- variable: global.registryDBUserPasswordKey
-  description: Registry database user password key
+- variable: global.minioSecretKey
+  description: Minio secert key in the above secret
   type: string
-  label: Registry Database User Password Key
-  group: Registry Database
+  label: Minio Secret Key
+  group: MinIO
 
-# Keymanager
-- variable: global.keymanagerInstallationName
-  description: Keymanager Installation Name
-  type: string
-  label: Keymanager Installation Name
-  group: Keymanager
-
-- variable: global.keycloakBaseUrl
-  description: Keycloak Base URL
-  type: string
-  label: Keycloak Base URL
-  group: Keymanager
-
-- variable: global.registryKeymanagerAuthEnabled
-  label: API Authentication Enabled
-  description: Enables Keymanager API authentication.
-  type: boolean
-  group: Keymanager
-
-- variable: global.registryKeymanagerAppId
-  description: Keymanager Application ID for Registry
-  type: string
-  label: Keymanager App ID
-  group: Keymanager

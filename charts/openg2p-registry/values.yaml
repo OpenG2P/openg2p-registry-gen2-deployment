@@ -24,7 +24,7 @@ global:
   redisInstallationName: '{{ .Release.Name }}-redis-master'
 
   # Minio
-  minioInstallationName: commons-minio
+  minioSecret: commons-minio
   minioAccessKey: root-user
   minioSecretKey: root-password
   minioHost: minio.qa.openg2p.org
@@ -156,11 +156,11 @@ partnerApi:
         key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
     REGISTRY_PARTNER_API_MINIO_ACCESS_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioAccessKey $ }}'
     REGISTRY_PARTNER_API_MINIO_SECRET_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioSecretKey $ }}'
     REGISTRY_PARTNER_API_OAUTH_CLIENT_SECRET:
       secretKeyRef:
@@ -215,7 +215,6 @@ partnerApi:
     containerSecurityContext:
       enabled: false
 
-  postgresqlInstallationName: '{{ .Release.Name }}-postgresql'
   containerPort: 8000
 
 benePortalApi:
@@ -293,11 +292,11 @@ benePortalApi:
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
     REGISTRY_BENE_PORTAL_API_MINIO_ACCESS_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioAccessKey $ }}'
     REGISTRY_BENE_PORTAL_API_MINIO_SECRET_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioSecretKey $ }}'
 
   startupProbe:
@@ -345,7 +344,6 @@ benePortalApi:
     containerSecurityContext:
       enabled: false
 
-  postgresqlInstallationName: '{{ .Release.Name }}-postgresql'
   containerPort: 8000
 
 staffPortalApi:
@@ -434,11 +432,11 @@ staffPortalApi:
         key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_ACCESS_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioAccessKey $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_SECRET_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioSecretKey $ }}'
 
   startupProbe:
@@ -486,7 +484,6 @@ staffPortalApi:
     containerSecurityContext:
       enabled: false
 
-  postgresqlInstallationName: '{{ .Release.Name }}-postgresql'
   containerPort: 8000
 
 staffPortalUi:
@@ -698,11 +695,11 @@ celeryWorker:
   envVarsFrom:
     REGISTRY_CELERY_WORKERS_MINIO_ACCESS_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioAccessKey $ }}'
     REGISTRY_CELERY_WORKERS_MINIO_SECRET_KEY:
       secretKeyRef:
-        name: '{{ tpl .Values.global.minioInstallationName $ }}'
+        name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioSecretKey $ }}'
     REGISTRY_CELERY_WORKERS_DB_PASSWORD:
       secretKeyRef:
@@ -734,7 +731,6 @@ celeryWorker:
     containerSecurityContext:
       enabled: false
 
-  postgresqlInstallationName: '{{ .Release.Name }}-postgresql'
   podSecurityContext:
     enabled: false
     fsGroup: 1001
