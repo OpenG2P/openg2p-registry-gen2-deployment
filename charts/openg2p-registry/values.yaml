@@ -11,7 +11,7 @@ global:
   #registryDBUser: '{{ .Release.Name }}_db_user'
   registryDBUser: '{{ printf "%s_user" .Release.Name | replace "-" "_" }}'
   registryDBSecret: '{{ .Release.Name }}'
-  registryDBUserPasswordKey: '{{ .Release.Name }}_db_user'
+  registryDBUserPasswordKey: '{{ .Release.Name }}-db-user'
 
   #masterDataReleaseName: master-data-master-data-api
   masterDataDB: 'master_data'
