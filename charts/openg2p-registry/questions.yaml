@@ -126,3 +126,40 @@ questions:
   label: Minio Secret Key
   group: MinIO
 
+# ID Generator
+- variable: idgenerator.enabled
+  description: Install ID Generator service
+  type: boolean
+  label: ID Generator
+  group: ID Generator
+
+- variable: global.idGeneratorHostname
+  description: Hostname for the ID Generator service
+  type: string
+  label: ID Generator Hostname
+  group: ID Generator
+
+- variable: idgenerator.idGenerator.appConfig.idTypes.farmer_id.idLength
+  description: Length of generated Farmer IDs
+  type: int
+  label: Farmer ID Length
+  group: ID Generator
+
+- variable: idgenerator.idGenerator.appConfig.idTypes.household_id.idLength
+  description: Length of generated Household IDs
+  type: int
+  label: Household ID Length
+  group: ID Generator
+
+- variable: idgenerator.idGenerator.appConfig.poolMinThreshold
+  description: Minimum number of pre-generated IDs to maintain in the pool
+  type: int
+  label: Pool Minimum Threshold
+  group: ID Generator
+
+- variable: idgenerator.idGenerator.appConfig.poolGenerationBatchSize
+  description: Number of IDs generated per batch when pool is replenished
+  type: int
+  label: Pool Generation Batch Size
+  group: ID Generator
+

@@ -1,24 +1,29 @@
 global:
   registryVariant: 'farmer'
-  registryHostname: 'farmer-registry-gen2.qa.openg2p.org'
+  registryHostname: '{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
 
   # Database
   postgresqlHost: commons-postgresql
 
-  #registryDB: '{{ .Release.Name }}_db'
   registryDB:  '{{ printf "%s" .Release.Name | replace "-" "_" }}'
   registryDBPort: 5432
-  #registryDBUser: '{{ .Release.Name }}_db_user'
   registryDBUser: '{{ printf "%s_user" .Release.Name | replace "-" "_" }}'
   registryDBSecret: '{{ .Release.Name }}'
   registryDBUserPasswordKey: '{{ .Release.Name }}-db-user'
 
-  #masterDataReleaseName: master-data-master-data-api
   masterDataDB: 'master_data'
   masterDataDBPort: 5432
   masterDataDBUser: 'master_data_user'
   masterDataDBSecret: 'master-data'
   masterDataDBUserPasswordKey: 'master-data-db-user'
+
+  # ID Generator
+  idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
+  idGeneratorDB: '{{ printf "%s_idgenerator" .Release.Name | replace "-" "_" }}'
+  idGeneratorDBPort: 5432
+  idGeneratorDBUser: '{{ printf "%s_idgenerator_user" .Release.Name | replace "-" "_" }}'
+  idGeneratorDBSecret: '{{ .Release.Name }}-idgenerator'
+  idGeneratorDBUserPasswordKey: '{{ .Release.Name }}-idgenerator-db-user'
 
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
@@ -27,10 +32,10 @@ global:
   minioSecret: commons-minio
   minioAccessKey: root-user
   minioSecretKey: root-password
-  minioHost: minio.qa.openg2p.org
+  minioHost: 'minio.{{ .Release.Namespace }}.openg2p.org'
 
   # Security & Authentication
-  keymanagerInstallationName: commons-keymanager
+  keymanagerInstallationName: commons-services-keymanager
   keycloakBaseUrl: https://keycloak2.openg2p.org
   keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
 
@@ -489,7 +494,7 @@ staffPortalApi:
 staffPortalUi:
   enabled: true
   nameOverride: staff-portal-ui
-  hostname: '{{ .Values.global.registryHostname }}'
+  hostname: '{{ tpl .Values.global.registryHostname $ }}'
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -525,7 +530,7 @@ staffPortalUi:
     enabled: true
     virtualservice:
       enabled: true
-      host: '{{ .Values.global.registryHostname }}'
+      host: '{{ tpl .Values.global.registryHostname $ }}'
       gateway: "internal"
       destination: '{{ .Release.Name }}-staff-portal-ui'
       destinationPort: '{{ .Values.service.port }}'
@@ -533,7 +538,7 @@ staffPortalUi:
       rewriteUri: "/"
     gateway:
       enabled: false
-      host: '{{ .Values.global.registryHostname }}'
+      host: '{{ tpl .Values.global.registryHostname $ }}'
       ingressController:
         istio: ingressgateway
       httpTlsRedirect: false
@@ -551,15 +556,15 @@ staffPortalUi:
 
   envVars:
     APP_MNEMONIC: registry-ui
-    APP_URL: 'https://{{ .Values.global.registryHostname }}'
-    BACKEND_API_URL: 'https://staff-{{ .Values.global.registryHostname }}'
+    APP_URL: 'https://{{ tpl .Values.global.registryHostname $ }}'
+    BACKEND_API_URL: 'https://staff-{{ tpl .Values.global.registryHostname $ }}'
     HOSTNAME: 0.0.0.0
     MASTERDATA_BACKEND_API_URL: '{{ .Values.masterDataBackendApiUrl }}'
     NODE_ENV: production
     PARTNER_IMPORT_EXPORT_ENABLE: 'true'
     PARTNER_INGEST_URL: '{{ .Values.partnerIngestUrl }}'
-    VERIFY_SERVICE_URL: 'https://{{ .Values.global.registryHostname }}/v1/verify'
-    VP_CLIENT_ID: 'did:web:{{ .Values.global.registryHostname }}:v1:verify'
+    VERIFY_SERVICE_URL: 'https://{{ tpl .Values.global.registryHostname $ }}/v1/verify'
+    VP_CLIENT_ID: 'did:web:{{ tpl .Values.global.registryHostname $ }}:v1:verify'
     VP_PRESENTATION_ID: '{{ .Values.vpPresentationId }}'
     VP_PURPOSE: '{{ .Values.vpPurpose }}'
 
@@ -750,3 +755,41 @@ redis:
       enabled: false
   auth:
     enabled: false
+
+idgenerator:
+  enabled: true
+  postgres-init:
+    enabled: true
+    nameOverride: idgenerator-postgres-init
+    postgresql:
+      host: '{{ .Values.global.postgresqlHost }}'
+      port: 5432
+      existingSecret: commons-postgresql
+      existingSecretPostgresPasswordKey: postgres-password
+    databases:
+      - name: '{{ tpl .Values.global.idGeneratorDB $ }}'
+        user: '{{ tpl .Values.global.idGeneratorDBUser $ }}'
+        secret: '{{ tpl .Values.global.idGeneratorDBSecret $ }}'
+        secretUserPasswordKey: '{{ tpl .Values.global.idGeneratorDBUserPasswordKey $ }}'
+  idGenerator:
+    enabled: true
+    hostname: '{{ tpl .Values.global.idGeneratorHostname $ }}'
+    appConfig:
+      idTypes:
+        farmer_id:
+          idLength: 12
+        household_id:
+          idLength: 10
+      sequenceLimit: 3
+      repeatingLimit: 2
+      repeatingBlockLimit: 2
+      conjugativeEvenDigitsLimit: 3
+      digitsGroupLimit: 5
+      reverseDigitsGroupLimit: 5
+      notStartWith: ["0", "1"]
+      restrictedNumbers: []
+      poolMinThreshold: 1000
+      poolGenerationBatchSize: 5000
+      poolCheckIntervalSeconds: 30
+      exhaustionMaxAttempts: 1000
+      subBatchSize: 10000

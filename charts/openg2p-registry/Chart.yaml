@@ -15,6 +15,11 @@ dependencies:
   version: 19.6.4
   repository: https://openg2p.github.io/openg2p-helm
   condition: redis.enabled
+- name: openg2p-id-generator
+  alias: idgenerator
+  version: 0.0.0-develop
+  repository: https://openg2p.github.io/openg2p-helm
+  condition: idgenerator.enabled
 icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
 keywords:
   - openg2p-registry
