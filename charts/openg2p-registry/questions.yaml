@@ -133,7 +133,7 @@ questions:
   label: ID Generator
   group: ID Generator
 
-- variable: global.idGeneratorHostname
+- variable: idgenerator.global.idGeneratorHostname
   description: Hostname for the ID Generator service
   type: string
   label: ID Generator Hostname

@@ -11,19 +11,11 @@ global:
   registryDBSecret: '{{ .Release.Name }}'
   registryDBUserPasswordKey: '{{ .Release.Name }}-db-user'
 
-  masterDataDB: 'master_data'
+  masterDataDB: 'commons_services_master_data'
   masterDataDBPort: 5432
-  masterDataDBUser: 'master_data_user'
-  masterDataDBSecret: 'master-data'
-  masterDataDBUserPasswordKey: 'master-data-db-user'
-
-  # ID Generator
-  idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
-  idGeneratorDB: '{{ printf "%s_idgenerator" .Release.Name | replace "-" "_" }}'
-  idGeneratorDBPort: 5432
-  idGeneratorDBUser: '{{ printf "%s_idgenerator_user" .Release.Name | replace "-" "_" }}'
-  idGeneratorDBSecret: '{{ .Release.Name }}-idgenerator'
-  idGeneratorDBUserPasswordKey: '{{ .Release.Name }}-idgenerator-db-user'
+  masterDataDBUser: 'commons_services_master_data_user'
+  masterDataDBSecret: 'commons-services-master-data'
+  masterDataDBUserPasswordKey: 'commons-services-master-data-db-user'
 
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
@@ -83,7 +75,7 @@ partnerApi:
     name: ""
   image:
     repository: openg2p/openg2p-farmer-registry-partner-api
-    tag: "develop"
+    tag: "1.0"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -240,7 +232,7 @@ benePortalApi:
     name: ""
   image:
     repository: openg2p/openg2p-registry-bene-portal-api
-    tag: "family"
+    tag: "1.0"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -369,7 +361,7 @@ staffPortalApi:
     name: ""
   image:
     repository: openg2p/openg2p-farmer-registry-staff-portal-api
-    tag: "develop"
+    tag: "1.0"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -509,7 +501,7 @@ staffPortalUi:
     name: ""
   image:
     repository: openg2p/openg2p-registry-staff-portal-ui
-    tag: "develop"
+    tag: "1.0"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -607,7 +599,7 @@ celeryBeatProducer:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-farmer-registry-celery
-    tag: "develop"
+    tag: "1.0"
     pullPolicy: Always
 
   envVars:
@@ -669,7 +661,7 @@ celeryWorker:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-farmer-registry-celery
-    tag: "develop"
+    tag: "1.0"
     pullPolicy: Always
 
   envVars:
@@ -758,22 +750,17 @@ redis:
 
 idgenerator:
   enabled: true
+  global:
+    idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
+    idGeneratorDB: '{{ printf "%s_idgenerator" .Release.Name | replace "-" "_" }}'
+    idGeneratorDBUser: '{{ printf "%s_idgenerator_user" .Release.Name | replace "-" "_" }}'
+    idGeneratorDBSecret: '{{ .Release.Name }}-idgenerator'
+    idGeneratorDBUserPasswordKey: '{{ .Release.Name }}-idgenerator-db-user'
   postgres-init:
     enabled: true
-    nameOverride: idgenerator-postgres-init
-    postgresql:
-      host: '{{ .Values.global.postgresqlHost }}'
-      port: 5432
-      existingSecret: commons-postgresql
-      existingSecretPostgresPasswordKey: postgres-password
-    databases:
-      - name: '{{ tpl .Values.global.idGeneratorDB $ }}'
-        user: '{{ tpl .Values.global.idGeneratorDBUser $ }}'
-        secret: '{{ tpl .Values.global.idGeneratorDBSecret $ }}'
-        secretUserPasswordKey: '{{ tpl .Values.global.idGeneratorDBUserPasswordKey $ }}'
+    nameOverride: idgen-pg-init
   idGenerator:
     enabled: true
-    hostname: '{{ tpl .Values.global.idGeneratorHostname $ }}'
     appConfig:
       idTypes:
         farmer_id:
