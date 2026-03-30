@@ -78,27 +78,51 @@ questions:
 
 # Keycloak
 - variable: global.keycloakBaseUrl
-  description: Keycloak Base Url used in all components
+  description: Keycloak Base URL used in all components
   type: string
   label: Keycloak Base URL
   group: Keycloak
 
+- variable: global.keycloakRealm
+  description: Keycloak realm where the OIDC client is created
+  type: string
+  label: Keycloak Realm
+  group: Keycloak
+
 - variable: global.authClientId
-  description: OIDC Client ID for Registry
+  description: OIDC Client ID for Registry (must match keycloak-init clientId)
   type: string
   label: OIDC Client ID
   group: Keycloak
 
-- variable: global.authClientSecret
-  description: Kubernetes secret holding OIDC client password 
-  type: string
-  label: OIDC Client Secret Name
+- variable: keycloak-init.enabled
+  description: Run Keycloak Init to create realm and OIDC client
+  type: boolean
+  label: Keycloak Init
   group: Keycloak
 
-- variable: global.authClientSecretKey
-  description: Key in above secret containing client password
+- variable: keycloak-init.keycloak.url
+  description: Keycloak URL for client initialization
   type: string
-  label: OIDC Client Secret Key
+  label: Keycloak Init URL
+  group: Keycloak
+
+- variable: keycloak-init.keycloak.user
+  description: Keycloak user with client management permissions
+  type: string
+  label: Keycloak Init User
+  group: Keycloak
+
+- variable: keycloak-init.keycloak.existingSecret
+  description: K8s secret containing Keycloak user password
+  type: string
+  label: Keycloak Init Password Secret
+  group: Keycloak
+
+- variable: keycloak-init.keycloak.existingSecretKey
+  description: Key in above secret containing the password
+  type: string
+  label: Keycloak Init Password Secret Key
   group: Keycloak
 
 # Minio

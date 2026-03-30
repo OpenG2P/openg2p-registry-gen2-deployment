@@ -29,16 +29,16 @@ global:
   # Security & Authentication
   keymanagerInstallationName: commons-services-keymanager
   keycloakBaseUrl: https://keycloak2.openg2p.org
-  keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/master'
+  keycloakRealm: 'staff-{{ .Release.Namespace }}'
+  keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/{{ tpl .Values.global.keycloakRealm $ }}'
 
   registryKeymanagerAuthEnabled: false
   registryKeymanagerAppId: REGISTRY
-  # This is the typical default name of the client and secret
-  authClientId: 'openg2p-registry-{{ .Release.Namespace }}'
-  # Name of the secret in Kuberentes containing the password (DO NOT password directly here)
-  # Same name as client id by convension.
-  authClientSecret: '{{ tpl .Values.global.authClientId $ }}'
-  # Key containing client password. Hardcoded in Keycloak Init script
+  # OIDC client ID — must match the clientId in keycloak-init.realms
+  authClientId: 'registry'
+  # K8s Secret name holding the client password (created by keycloak-init)
+  authClientSecret: 'registry'
+  # Key inside the secret containing the client password
   authClientSecretKey: 'client_secret'
 
 postgres-init:
@@ -139,7 +139,7 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_APP_ID: '{{ .Values.global.registryKeymanagerAppId }}'
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
-    REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
+    REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_PARTNER_API_MINIO_SECURE: "true"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
@@ -279,7 +279,7 @@ benePortalApi:
 
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
+    REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
@@ -414,7 +414,7 @@ staffPortalApi:
 
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
+    REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
 
@@ -683,7 +683,7 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_BATCH_SIZE: 2000
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
-    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ .Values.global.minioHost }}'
+    REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
     CELERY_APP: "openg2p_registry_celery_workers.main.celery_app"
@@ -747,6 +747,22 @@ redis:
       enabled: false
   auth:
     enabled: false
+
+keycloak-init:
+  enabled: true
+  keycloak:
+    url: ''
+    user: ''
+    password: ''
+    existingSecret: keycloak-client-manager
+    existingSecretKey: keycloak-client-manager-password
+  suffix: '{{ .Release.Namespace }}'
+  realms:
+    staff-{{ .suffix }}:
+      clients:
+        - clientId: registry
+          name: Registry
+          redirectUris: ["*"]
 
 idgenerator:
   enabled: true
