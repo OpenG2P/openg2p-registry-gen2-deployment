@@ -751,7 +751,7 @@ redis:
 keycloak-init:
   enabled: true
   keycloak:
-    url: 'https://keycloak2.openg2p.org'
+    url: ''
     user: 'client-manager@openg2p.org'
     password: ''
     existingSecret: keycloak-client-manager

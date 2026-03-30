@@ -25,12 +25,6 @@ questions:
   label: Keycloak Init
   group: General
 
-- variable: keycloak-init.keycloak.url
-  description: Keycloak URL for client initialization
-  type: string
-  label: Keycloak Init URL
-  group: General
-
 - variable: staffPortalApi.enabled
   description: Install Staff Portal API
   type: boolean
