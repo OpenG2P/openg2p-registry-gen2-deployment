@@ -760,7 +760,7 @@ keycloak-init:
   realms:
     staff-{{ .suffix }}:
       clients:
-        - clientId: registry
+        - clientId: registry-staff-portal
           name: Registry
           redirectUris: ["*"]
 
