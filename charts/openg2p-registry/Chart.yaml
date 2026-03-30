@@ -1,5 +1,5 @@
 apiVersion: v2
-name: openg2p-registry-gen2
+name: openg2p-registry
 description: A Helm chart for OpenG2P Registry Gen2
 type: application
 version: 4.0.0-develop
@@ -34,5 +34,5 @@ maintainers:
     name: OpenG2P
 icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
 annotations:
-  catalog.cattle.io/display-name: "OpenG2P Registry Gen2"
+  catalog.cattle.io/display-name: "OpenG2P Registry"
   openg2p.org/add-to-rancher: ""
