@@ -10,19 +10,25 @@ questions:
 - variable: global.postgresqlHost
   description: PostgreSQL server host
   type: string
-  label: PostreSQL Server Host
+  label: PostgreSQL Server Host
   group: General
 
-- variable: postgres-init.enabled
-  description: Run Postgres init
+- variable: global.keycloakBaseUrl
+  description: Keycloak Base URL used in all components
   type: string
-  label: Postgres Init 
+  label: Keycloak Base URL
   group: General
 
-- variable: global.keymanagerInstallationName
-  description: Name of the Keymanager service
+- variable: keycloak-init.enabled
+  description: Run Keycloak Init to create realm and OIDC client
+  type: boolean
+  label: Keycloak Init
+  group: General
+
+- variable: keycloak-init.keycloak.url
+  description: Keycloak URL for client initialization
   type: string
-  label: Keymanager Service
+  label: Keycloak Init URL
   group: General
 
 - variable: staffPortalApi.enabled
@@ -49,141 +55,16 @@ questions:
   label: Beneficiary Portal API
   group: General
 
-
-# Master data
-  masterDataDBUserPasswordKey: 'master-data-db-user'
-- variable: global.masterDataDB
-  descriptiol: Name of the master data database
-  type: string
-  label: Master Data DB 
-  group: Master Data
-
-- variable: global.masterDataDBUser
-  descriptiol: Name of the master data database user name
-  type: string
-  label: Master Data DB User 
-  group: Master Data
-
-- variable: global.masterDataDBSecret
-  descriptiol: Kubernetes secret that holds master data's database user's password 
-  type: string
-  label: Master Data DB User Secret
-  group: Master Data
-
-- variable: global.masterDataDBUserPasswordKey
-  descriptiol: Password key that holds user password in the above secret
-  type: string
-  label: Master Data DB User Password Key
-  group: Master Data
-
-# Keycloak
-- variable: global.keycloakBaseUrl
-  description: Keycloak Base URL used in all components
-  type: string
-  label: Keycloak Base URL
-  group: Keycloak
-
-- variable: global.keycloakRealm
-  description: Keycloak realm where the OIDC client is created
-  type: string
-  label: Keycloak Realm
-  group: Keycloak
-
-- variable: global.authClientId
-  description: OIDC Client ID for Registry (must match keycloak-init clientId)
-  type: string
-  label: OIDC Client ID
-  group: Keycloak
-
-- variable: keycloak-init.enabled
-  description: Run Keycloak Init to create realm and OIDC client
-  type: boolean
-  label: Keycloak Init
-  group: Keycloak
-
-- variable: keycloak-init.keycloak.url
-  description: Keycloak URL for client initialization
-  type: string
-  label: Keycloak Init URL
-  group: Keycloak
-
-- variable: keycloak-init.keycloak.user
-  description: Keycloak user with client management permissions
-  type: string
-  label: Keycloak Init User
-  group: Keycloak
-
-- variable: keycloak-init.keycloak.existingSecret
-  description: K8s secret containing Keycloak user password
-  type: string
-  label: Keycloak Init Password Secret
-  group: Keycloak
-
-- variable: keycloak-init.keycloak.existingSecretKey
-  description: Key in above secret containing the password
-  type: string
-  label: Keycloak Init Password Secret Key
-  group: Keycloak
-
-# Minio
-- variable: global.minioHost
-  description: Minio domain (host) name
-  type: string
-  label: Minio Domain Name
-  group: MinIO
-
-- variable: global.minioSecret
-  description: Secret containing access keys
-  type: string
-  label: Minio Secret
-  group: MinIO
-
-- variable: global.minioAccessKey
-  description: Minio access key in the above secret
-  type: string
-  label: Minio Access Key
-  group: MinIO
-
-- variable: global.minioSecretKey
-  description: Minio secert key in the above secret
-  type: string
-  label: Minio Secret Key
-  group: MinIO
-
-# ID Generator
 - variable: idgenerator.enabled
   description: Install ID Generator service
   type: boolean
   label: ID Generator
-  group: ID Generator
+  group: General
 
-- variable: idgenerator.global.idGeneratorHostname
-  description: Hostname for the ID Generator service
+# ID Generator
+- variable: idgenerator.idGenerator.appConfig.idTypesNote
+  description: "Default ID types: farmer_id (12 digits), household_id (10 digits). To add, remove, or modify ID types, switch to 'Edit YAML' and update the idgenerator.idGenerator.appConfig.idTypes section."
   type: string
-  label: ID Generator Hostname
+  label: ID Types Configuration
   group: ID Generator
-
-- variable: idgenerator.idGenerator.appConfig.idTypes.farmer_id.idLength
-  description: Length of generated Farmer IDs
-  type: int
-  label: Farmer ID Length
-  group: ID Generator
-
-- variable: idgenerator.idGenerator.appConfig.idTypes.household_id.idLength
-  description: Length of generated Household IDs
-  type: int
-  label: Household ID Length
-  group: ID Generator
-
-- variable: idgenerator.idGenerator.appConfig.poolMinThreshold
-  description: Minimum number of pre-generated IDs to maintain in the pool
-  type: int
-  label: Pool Minimum Threshold
-  group: ID Generator
-
-- variable: idgenerator.idGenerator.appConfig.poolGenerationBatchSize
-  description: Number of IDs generated per batch when pool is replenished
-  type: int
-  label: Pool Generation Batch Size
-  group: ID Generator
-
+  default: "See description — edit YAML to configure"
