@@ -35,9 +35,9 @@ global:
   registryKeymanagerAuthEnabled: false
   registryKeymanagerAppId: REGISTRY
   # OIDC client ID — must match the clientId in keycloak-init.realms
-  authClientId: 'registry'
+  authClientId: 'registry-staff-portal'
   # K8s Secret name holding the client password (created by keycloak-init)
-  authClientSecret: 'registry'
+  authClientSecret: 'registry-staff-portal'
   # Key inside the secret containing the client password
   authClientSecretKey: 'client_secret'
 
@@ -761,8 +761,22 @@ keycloak-init:
     staff-{{ .suffix }}:
       clients:
         - clientId: registry-staff-portal
-          name: Registry
+          name: Registry Staff Portal
           redirectUris: ["*"]
+          clientRoles:
+            # --- Operations roles ---
+            - "Intake Officer"
+            - "Intake Validator"
+            - "Data Editor"
+            - "Data Validator"
+            - "Data Supervisor"
+            - "Integration Manager"
+            - "Operations Administrator"
+            # --- Configuration roles ---
+            - "Schema Designer"
+            - "Integration Specialist"
+            - "Reference Data Specialist"
+            - "Technical Administrator"
 
 idgenerator:
   enabled: true
