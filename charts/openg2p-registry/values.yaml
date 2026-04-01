@@ -751,14 +751,16 @@ redis:
 keycloak-init:
   enabled: true
   keycloak:
-    url: ''
+    # Internal URL to reach Keycloak within the namespace
+    url: 'http://commons-keycloak:80'
     user: 'admin'
     password: ''
-    existingSecret: keycloak-admin
-    existingSecretKey: keycloak-admin-password
+    # Points to the Keycloak chart's auto-created admin secret (<commons-release-name>-keycloak)
+    existingSecret: 'commons-keycloak'
+    existingSecretKey: 'admin-password'
   suffix: '{{ .Release.Namespace }}'
   realms:
-    staff-{{ .suffix }}:
+    staff:
       clients:
         - clientId: registry-staff-portal
           name: Registry Staff Portal
