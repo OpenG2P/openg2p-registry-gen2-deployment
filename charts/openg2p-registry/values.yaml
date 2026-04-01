@@ -28,9 +28,9 @@ global:
 
   # Security & Authentication
   keymanagerInstallationName: commons-services-keymanager
-  keycloakBaseUrl: https://keycloak2.openg2p.org
+  keycloakBaseUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
   keycloakRealm: 'staff-{{ .Release.Namespace }}'
-  keycloakIssuerUrl: '{{ .Values.global.keycloakBaseUrl }}/realms/{{ tpl .Values.global.keycloakRealm $ }}'
+  keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ tpl .Values.global.keycloakRealm $ }}'
 
   registryKeymanagerAuthEnabled: false
   registryKeymanagerAppId: REGISTRY
@@ -752,10 +752,10 @@ keycloak-init:
   enabled: true
   keycloak:
     url: ''
-    user: 'client-manager@openg2p.org'
+    user: 'admin'
     password: ''
-    existingSecret: keycloak-client-manager
-    existingSecretKey: keycloak-client-manager-password
+    existingSecret: keycloak-admin
+    existingSecretKey: keycloak-admin-password
   suffix: '{{ .Release.Namespace }}'
   realms:
     staff-{{ .suffix }}:
