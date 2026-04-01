@@ -44,6 +44,9 @@ global:
   # IAM service internal URL
   iamServiceUrl: 'http://commons-services-iam-staff-portal-api'
 
+  # Master Data API internal URL
+  masterDataApiUrl: 'http://commons-services-master-data-api'
+
 postgres-init:
   enabled: true
   postgresql:
@@ -546,8 +549,7 @@ staffPortalUi:
         credentialName: ""
 
   # Configuration parameters
-  masterDataBackendApiUrl: https://gen2-master-data.dev.openg2p.org
-  partnerIngestUrl: "https://partner-family-registry-gen2.play.openg2p.org/partner/ingest_data?data_model=dcivc"
+  partnerIngestUrl: 'https://partner-{{ tpl .Values.global.registryHostname $ }}/partner/ingest_data?data_model=dcivc'
   vpPresentationId: "7f3c2a91-bb84-4d1f-9a6e-41c8e5a0d9f2"
   vpPurpose: "Digital identity verification for registry onboarding"
 
@@ -557,15 +559,14 @@ staffPortalUi:
     APPLICATION_MNEMONIC: 'openg2p-registry'
     BACKEND_API_URL: 'https://staff-{{ tpl .Values.global.registryHostname $ }}'
     COOKIE_DOMAIN: '.{{ .Release.Namespace }}.openg2p.org'
-    HOSTNAME: 0.0.0.0
     IAM_URL: '{{ .Values.global.iamServiceUrl }}'
     KEYCLOAK_LOGOUT_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/logout'
     LOGIN_PROVIDER_ID: '4'
-    MASTERDATA_BACKEND_API_URL: '{{ .Values.masterDataBackendApiUrl }}'
+    MASTERDATA_BACKEND_API_URL: '{{ .Values.global.masterDataApiUrl }}'
     NODE_ENV: production
     PAGE_SIZE: '10'
     PARTNER_IMPORT_EXPORT_ENABLE: 'true'
-    PARTNER_INGEST_URL: '{{ .Values.partnerIngestUrl }}'
+    PARTNER_INGEST_URL: '{{ tpl .Values.partnerIngestUrl $ }}'
     REDIRECT_URL: 'https://{{ tpl .Values.global.registryHostname $ }}'
     VERIFY_SERVICE_URL: 'https://{{ tpl .Values.global.registryHostname $ }}/v1/verify'
     VP_CLIENT_ID: 'did:web:{{ tpl .Values.global.registryHostname $ }}:v1:verify'
