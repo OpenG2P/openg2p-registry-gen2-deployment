@@ -554,12 +554,19 @@ staffPortalUi:
   envVars:
     APP_MNEMONIC: registry-ui
     APP_URL: 'https://{{ tpl .Values.global.registryHostname $ }}'
+    APPLICATION_MNEMONIC: 'openg2p-registry'
     BACKEND_API_URL: 'https://staff-{{ tpl .Values.global.registryHostname $ }}'
+    COOKIE_DOMAIN: '.{{ .Release.Namespace }}.openg2p.org'
     HOSTNAME: 0.0.0.0
+    IAM_URL: '{{ .Values.global.iamServiceUrl }}'
+    KEYCLOAK_LOGOUT_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/logout'
+    LOGIN_PROVIDER_ID: '4'
     MASTERDATA_BACKEND_API_URL: '{{ .Values.masterDataBackendApiUrl }}'
     NODE_ENV: production
+    PAGE_SIZE: '10'
     PARTNER_IMPORT_EXPORT_ENABLE: 'true'
     PARTNER_INGEST_URL: '{{ .Values.partnerIngestUrl }}'
+    REDIRECT_URL: 'https://{{ tpl .Values.global.registryHostname $ }}'
     VERIFY_SERVICE_URL: 'https://{{ tpl .Values.global.registryHostname $ }}/v1/verify'
     VP_CLIENT_ID: 'did:web:{{ tpl .Values.global.registryHostname $ }}:v1:verify'
     VP_PRESENTATION_ID: '{{ .Values.vpPresentationId }}'
