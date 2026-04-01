@@ -41,6 +41,9 @@ global:
   # Key inside the secret containing the client password
   authClientSecretKey: 'client_secret'
 
+  # IAM service internal URL
+  iamServiceUrl: 'http://commons-services-iam-staff-portal-api'
+
 postgres-init:
   enabled: true
   postgresql:
@@ -413,6 +416,8 @@ staffPortalApi:
     REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
 
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
+
+    REGISTRY_STAFF_PORTAL_API_AUTH_PROVIDER_API_URL: '{{ .Values.global.iamServiceUrl }}'
 
     REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
