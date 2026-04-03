@@ -561,7 +561,7 @@ staffPortalUi:
     COOKIE_DOMAIN: '.{{ .Release.Namespace }}.openg2p.org'
     IAM_URL: '{{ .Values.global.iamServiceUrl }}'
     KEYCLOAK_LOGOUT_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/logout'
-    LOGIN_PROVIDER_ID: '4'
+    LOGIN_PROVIDER_ID: '1'
     MASTERDATA_BACKEND_API_URL: '{{ .Values.global.masterDataApiUrl }}'
     NODE_ENV: production
     PAGE_SIZE: '10'
