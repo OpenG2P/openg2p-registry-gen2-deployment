@@ -55,6 +55,79 @@ questions:
   label: ID Generator
   group: General
 
+# Images
+- variable: staffPortalApi.image.repository
+  description: Docker image repository for Staff Portal API
+  type: string
+  label: Staff Portal API Image Repository
+  group: Images
+
+- variable: staffPortalApi.image.tag
+  description: Docker image tag for Staff Portal API
+  type: string
+  label: Staff Portal API Image Tag
+  group: Images
+
+- variable: staffPortalUi.image.repository
+  description: Docker image repository for Staff Portal UI
+  type: string
+  label: Staff Portal UI Image Repository
+  group: Images
+
+- variable: staffPortalUi.image.tag
+  description: Docker image tag for Staff Portal UI
+  type: string
+  label: Staff Portal UI Image Tag
+  group: Images
+
+- variable: partnerApi.image.repository
+  description: Docker image repository for Partner API
+  type: string
+  label: Partner API Image Repository
+  group: Images
+
+- variable: partnerApi.image.tag
+  description: Docker image tag for Partner API
+  type: string
+  label: Partner API Image Tag
+  group: Images
+
+- variable: benePortalApi.image.repository
+  description: Docker image repository for Beneficiary Portal API
+  type: string
+  label: Beneficiary Portal API Image Repository
+  group: Images
+
+- variable: benePortalApi.image.tag
+  description: Docker image tag for Beneficiary Portal API
+  type: string
+  label: Beneficiary Portal API Image Tag
+  group: Images
+
+- variable: celeryBeatProducer.image.repository
+  description: Docker image repository for Celery Beat Producer
+  type: string
+  label: Celery Beat Producer Image Repository
+  group: Images
+
+- variable: celeryBeatProducer.image.tag
+  description: Docker image tag for Celery Beat Producer
+  type: string
+  label: Celery Beat Producer Image Tag
+  group: Images
+
+- variable: celeryWorker.image.repository
+  description: Docker image repository for Celery Worker
+  type: string
+  label: Celery Worker Image Repository
+  group: Images
+
+- variable: celeryWorker.image.tag
+  description: Docker image tag for Celery Worker
+  type: string
+  label: Celery Worker Image Tag
+  group: Images
+
 # ID Generator
 - variable: idgenerator.idGenerator.appConfig.idTypesNote
   description: "Default ID types: farmer_id (12 digits), household_id (10 digits). To add, remove, or modify ID types, switch to 'Edit YAML' and update the idgenerator.idGenerator.appConfig.idTypes section."
