@@ -47,6 +47,23 @@ global:
   # Master Data API internal URL
   masterDataApiUrl: 'http://commons-services-master-data-api'
 
+# Logging — ships openg2p pod logs (as JSON) to the OpenSearch Output
+# installed by openg2p-commons-base via Fluent Operator.
+logging:
+  enabled: true
+  # Name of the namespace-scoped fluent Output resource (created by commons-base)
+  # to which registry pod logs will be routed.
+  outputRef: commons-opensearch
+  # Container names whose logs should be captured by the Flow. Must match the
+  # container names (i.e. component nameOverrides) in the deployments below.
+  containerNames:
+    - staff-portal-api
+    - staff-portal-ui
+    - partner-api
+    - bene-portal-api
+    - celery-beat-producer
+    - celery-worker
+
 postgres-init:
   enabled: true
   postgresql:

@@ -128,6 +128,19 @@ questions:
   label: Celery Worker Image Tag
   group: Images
 
+# Logging
+- variable: logging.enabled
+  description: Ship openg2p pod logs (JSON) to the OpenSearch Output configured by commons-base
+  type: boolean
+  label: Enable Logging
+  group: Logging
+
+- variable: logging.outputRef
+  description: Name of the namespace-scoped Fluent Output resource (created by commons-base) to route logs to
+  type: string
+  label: Fluent Output Name
+  group: Logging
+
 # ID Generator
 - variable: idgenerator.idGenerator.appConfig.idTypesNote
   description: "Default ID types: farmer_id (12 digits), household_id (10 digits). To add, remove, or modify ID types, switch to 'Edit YAML' and update the idgenerator.idGenerator.appConfig.idTypes section."
