@@ -47,6 +47,10 @@ global:
   # Master Data API internal URL
   masterDataApiUrl: 'http://commons-services-master-data-api'
 
+  # ID Generator
+  idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
+  idGeneratorApiUrl: 'https://{{ tpl .Values.global.idGeneratorHostname $ }}/v1'
+
 # Logging — ships openg2p pod logs (as JSON) to the OpenSearch Output
 # installed by openg2p-commons-base via Fluent Operator.
 logging:
@@ -701,11 +705,11 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_DB_PORT: 5432
     REGISTRY_CELERY_WORKERS_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
 
-    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
-    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
-    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
-    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
-    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+    REGISTRY_CELERY_WORKERS_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_CELERY_WORKERS_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_CELERY_WORKERS_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_CELERY_WORKERS_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_CELERY_WORKERS_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
 
     REGISTRY_CELERY_WORKERS_CELERY_BROKER_URL: "redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0"
     REGISTRY_CELERY_WORKERS_CELERY_BACKEND_URL: "redis://{{ tpl .Values.global.redisInstallationName $ }}:6379/0"
@@ -716,7 +720,10 @@ celeryWorker:
 
     REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
-    REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "templates"
+    REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "default"
+    REGISTRY_CELERY_WORKERS_TEMPLATE_BUCKET_NAME: "template"
+    REGISTRY_CELERY_WORKERS_FUNCTIONAL_ID_GENERATION_URL: '{{ tpl .Values.global.idGeneratorApiUrl $ }}'
+    REGISTRY_CELERY_WORKERS_ID_GENERATION_ALLOCATION_PATH: '/idgenerator/{id_type}/id'
     CELERY_APP: "openg2p_registry_celery_workers.main.celery_app"
     CELERY_OPTS: "worker -Q registry_worker_queue --loglevel=info"
 
@@ -733,7 +740,7 @@ celeryWorker:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
-    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
+    REGISTRY_CELERY_WORKERS_MASTER_DATA_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
         key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
@@ -814,7 +821,6 @@ keycloak-init:
 idgenerator:
   enabled: true
   global:
-    idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
     idGeneratorDB: '{{ printf "%s_idgenerator" .Release.Name | replace "-" "_" }}'
     idGeneratorDBUser: '{{ printf "%s_idgenerator_user" .Release.Name | replace "-" "_" }}'
     idGeneratorDBSecret: '{{ .Release.Name }}-idgenerator'
