@@ -429,11 +429,11 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
     REGISTRY_STAFF_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
 
-    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
-    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
-    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
-    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
-    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
 
     REGISTRY_STAFF_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
@@ -441,14 +441,15 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_KEYCLOAK_CLIENT_ID: '{{ tpl .Values.global.authClientId $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
-    REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "templates"
+    REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "default"
+    REGISTRY_STAFF_PORTAL_API_TEMPLATE_BUCKET_NAME: "template"
 
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
-    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
+    REGISTRY_STAFF_PORTAL_API_MASTER_DATA_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
         key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
