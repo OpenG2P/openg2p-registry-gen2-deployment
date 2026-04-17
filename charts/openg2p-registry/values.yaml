@@ -29,7 +29,7 @@ global:
   # Security & Authentication
   keymanagerInstallationName: commons-services-keymanager
   keycloakBaseUrl: 'https://keycloak.{{ .Release.Namespace }}.openg2p.org'
-  keycloakRealm: 'staff-{{ .Release.Namespace }}'
+  keycloakRealm: 'staff'
   keycloakIssuerUrl: '{{ tpl .Values.global.keycloakBaseUrl $ }}/realms/{{ tpl .Values.global.keycloakRealm $ }}'
 
   registryKeymanagerAuthEnabled: false
