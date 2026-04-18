@@ -832,9 +832,9 @@ idgenerator:
     enabled: true
     appConfig:
       idTypes:
-        farmer_id:
+        farmer:
           idLength: 12
-        household_id:
+        household:
           idLength: 10
       sequenceLimit: 3
       repeatingLimit: 2
