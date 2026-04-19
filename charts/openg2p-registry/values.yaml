@@ -818,9 +818,9 @@ keycloak-init:
             - "Reference Data Specialist"
             - "Technical Administrator"
       users:
+        # IMPORTANT: It is assumed that admin has already been created as part
+        # of commons layer
         - username: admin
-          password: admin
-          email: admin@your.domain.com
           clientRoleMappings:
             registry-staff-portal:
               - "Operations Administrator"
