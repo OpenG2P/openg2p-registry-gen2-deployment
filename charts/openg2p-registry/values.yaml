@@ -817,6 +817,14 @@ keycloak-init:
             - "Integration Specialist"
             - "Reference Data Specialist"
             - "Technical Administrator"
+      users:
+        - username: admin
+          password: admin
+          email: admin@your.domain.com
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
 
 idgenerator:
   enabled: true
