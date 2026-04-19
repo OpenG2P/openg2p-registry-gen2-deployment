@@ -68,6 +68,18 @@ logging:
     - celery-beat-producer
     - celery-worker
 
+# DB Seed — runs configuration and (optionally) sample data SQL scripts
+# after all application pods are ready. Uses a Docker image published
+# from openg2p-registry-gen2-extensions.
+dbSeed:
+  enabled: true
+  # Load sample/demo data into the registry (disabled by default)
+  loadSampleData: true
+  image:
+    repository: openg2p/openg2p-farmer-registry-db-seed
+    tag: develop
+    pullPolicy: Always
+
 postgres-init:
   enabled: true
   postgresql:
@@ -578,7 +590,7 @@ staffPortalUi:
   envVars:
     APP_MNEMONIC: registry-ui
     APP_URL: 'https://{{ tpl .Values.global.registryHostname $ }}'
-    APPLICATION_MNEMONIC: 'openg2p-registry'
+    APPLICATION_MNEMONIC: 'registry-staff-portal'
     BACKEND_API_URL: 'https://staff-{{ tpl .Values.global.registryHostname $ }}'
     COOKIE_DOMAIN: '.{{ .Release.Namespace }}.openg2p.org'
     IAM_URL: '{{ .Values.global.iamServiceUrl }}'

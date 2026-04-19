@@ -141,6 +141,31 @@ questions:
   label: Fluent Output Name
   group: Logging
 
+# DB Seed
+- variable: dbSeed.enabled
+  description: Run DB seed Job to load configuration SQL scripts after pods start
+  type: boolean
+  label: Enable DB Seed
+  group: DB Seed
+
+- variable: dbSeed.loadSampleData
+  description: Also load sample/demo data into the registry (off by default)
+  type: boolean
+  label: Load Sample Data
+  group: DB Seed
+
+- variable: dbSeed.image.repository
+  description: Docker image repository for the DB seed container
+  type: string
+  label: DB Seed Image Repository
+  group: DB Seed
+
+- variable: dbSeed.image.tag
+  description: Docker image tag for the DB seed container
+  type: string
+  label: DB Seed Image Tag
+  group: DB Seed
+
 # ID Generator
 - variable: idgenerator.idGenerator.appConfig.idTypesNote
   description: "Default ID types: farmer (12 digits), household (10 digits). To add, remove, or modify ID types, switch to 'Edit YAML' and update the idgenerator.idGenerator.appConfig.idTypes section."
