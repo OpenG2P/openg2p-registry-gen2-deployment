@@ -114,7 +114,7 @@ partnerApi:
     name: ""
   image:
     repository: openg2p/openg2p-farmer-registry-partner-api
-    tag: "1.0.1"
+    tag: "1.0.2"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -400,7 +400,7 @@ staffPortalApi:
     name: ""
   image:
     repository: openg2p/openg2p-farmer-registry-staff-portal-api
-    tag: "1.0.1"
+    tag: "1.0.2"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -543,7 +543,7 @@ staffPortalUi:
     name: ""
   image:
     repository: openg2p/openg2p-registry-staff-portal-ui
-    tag: "1.0.1"
+    tag: "1.0.2"
     pullPolicy: Always
   podSecurityContext:
     enabled: false
@@ -646,7 +646,7 @@ celeryBeatProducer:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-farmer-registry-celery
-    tag: "1.0.1"
+    tag: "1.0.2"
     pullPolicy: Always
 
   envVars:
@@ -708,7 +708,7 @@ celeryWorker:
   replicaCount: 1
   image:
     repository: openg2p/openg2p-farmer-registry-celery
-    tag: "1.0.1"
+    tag: "1.0.2"
     pullPolicy: Always
 
   envVars:
