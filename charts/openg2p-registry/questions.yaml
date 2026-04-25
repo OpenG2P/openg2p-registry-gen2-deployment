@@ -173,3 +173,22 @@ questions:
   label: ID Types Configuration
   group: ID Generator
   default: "See description — edit YAML to configure"
+
+# Audit Manager
+- variable: global.auditEnabled
+  description: Master switch for emitting audit events to OpenG2P Audit Manager. Must be true AND global.auditManagerUrl must be set for any audits to flow. Available from staff-portal-api 1.1.x.
+  type: boolean
+  label: Audit Enabled
+  group: Audit Manager
+
+- variable: global.auditManagerUrl
+  description: Internal URL of the OpenG2P Audit Manager service (e.g. http://audit-manager:80 when in the same namespace).
+  type: string
+  label: Audit Manager URL
+  group: Audit Manager
+
+- variable: global.auditAnonymousFailures
+  description: When true, also audit rejected anonymous calls (401/403). Set false to skip them and only audit authenticated user calls.
+  type: boolean
+  label: Audit Anonymous Failures
+  group: Audit Manager

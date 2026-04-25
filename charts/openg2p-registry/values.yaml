@@ -51,6 +51,18 @@ global:
   idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
   idGeneratorApiUrl: 'https://{{ tpl .Values.global.idGeneratorHostname $ }}/v1'
 
+  # OpenG2P Audit Manager integration
+  # Both `auditEnabled=true` AND `auditManagerUrl` must be set for emission
+  # to actually happen. Defaults below mean "audit feature wired but turned
+  # off" — safe to ship; per-environment overrides flip it on.
+  # Available from staff-portal-api v1.1.x (chart 4.1.x).
+  auditEnabled: false
+  auditManagerUrl: 'http://audit-manager:80'
+  # Set to false to skip auditing of rejected anonymous calls (401/403
+  # without a populated principal). Default true captures attempted
+  # unauthorized access for security review.
+  auditAnonymousFailures: true
+
 # Logging — ships openg2p pod logs (as JSON) to the OpenSearch Output
 # installed by openg2p-commons-base via Fluent Operator.
 logging:
@@ -459,6 +471,14 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "default"
     REGISTRY_STAFF_PORTAL_API_TEMPLATE_BUCKET_NAME: "template"
+
+    # OpenG2P Audit Manager integration. No-op unless both AUDIT_ENABLED=true
+    # and AUDIT_MANAGER_URL are set (controlled via global.auditEnabled and
+    # global.auditManagerUrl). Safe to leave wired in older images that lack
+    # the AuditMiddleware — env vars are simply ignored there.
+    REGISTRY_STAFF_PORTAL_API_AUDIT_ENABLED: '{{ .Values.global.auditEnabled }}'
+    REGISTRY_STAFF_PORTAL_API_AUDIT_MANAGER_URL: '{{ .Values.global.auditManagerUrl }}'
+    REGISTRY_STAFF_PORTAL_API_AUDIT_ANONYMOUS_FAILURES: '{{ .Values.global.auditAnonymousFailures }}'
 
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
