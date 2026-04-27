@@ -56,8 +56,8 @@ global:
   # to actually happen. Defaults below mean "audit feature wired but turned
   # off" — safe to ship; per-environment overrides flip it on.
   # Available from staff-portal-api v1.1.x (chart 4.1.x).
-  auditEnabled: false
-  auditManagerUrl: 'http://audit-manager:80'
+  auditEnabled: true
+  auditManagerUrl: 'http://commons-services-auditmanager:80'
   # Set to false to skip auditing of rejected anonymous calls (401/403
   # without a populated principal). Default true captures attempted
   # unauthorized access for security review.
