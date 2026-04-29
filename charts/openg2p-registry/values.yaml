@@ -834,7 +834,12 @@ keycloak-init:
       clients:
         - clientId: registry-staff-portal
           name: Registry Staff Portal
-          redirectUris: ["*"]
+          # Host-scoped redirect URIs — restricted to the Staff Portal UI's
+          # public hostname. Covers all paths under it (root, OIDC callback,
+          # post-login landing). NEVER use a bare "*" — it allows token
+          # redirects to arbitrary hosts and is a known OIDC vulnerability.
+          redirectUris:
+            - 'https://{{ tpl .Values.global.registryHostname $ }}/*'
           clientRoles:
             # --- Operations roles ---
             - "Intake Officer"
