@@ -2,7 +2,7 @@ apiVersion: v2
 name: openg2p-registry
 description: A Helm chart for OpenG2P Registry Gen2
 type: application
-version: 4.1.0-develop
+version: 4.1.0
 dependencies:
 - name: common
   repository: https://openg2p.github.io/openg2p-helm
