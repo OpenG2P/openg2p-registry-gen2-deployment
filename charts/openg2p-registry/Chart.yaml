@@ -2,7 +2,7 @@ apiVersion: v2
 name: openg2p-registry
 description: A Helm chart for OpenG2P Registry Gen2
 type: application
-version: 0.0.0-develop
+version: 4.1.0-develop
 dependencies:
 - name: common
   repository: https://openg2p.github.io/openg2p-helm
@@ -21,7 +21,7 @@ dependencies:
   repository: https://openg2p.github.io/openg2p-helm
   condition: idgenerator.enabled
 - name: keycloak-init
-  version: 1.1.0-develop
+  version: 1.1.1
   repository: https://openg2p.github.io/openg2p-helm
   condition: keycloak-init.enabled
 icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
