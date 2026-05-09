@@ -24,7 +24,10 @@ global:
   minioSecret: commons-minio
   minioAccessKey: root-user
   minioSecretKey: root-password
-  minioHost: 'minio.{{ .Release.Namespace }}.openg2p.org'
+  # Internal cluster service for MinIO. Pods reach MinIO directly via the
+  # commons-minio K8s Service on its API port (9000). The external hostname
+  # 'minio.<ns>.openg2p.org' is for browser/external clients only.
+  minioHost: 'commons-minio:9000'
 
   # Security & Authentication
   keymanagerInstallationName: commons-services-keymanager
@@ -48,8 +51,13 @@ global:
   masterDataApiUrl: 'http://commons-services-master-data-api'
 
   # ID Generator
+  # Public hostname (used by browser/external callers via Istio VirtualService).
   idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
   idGeneratorApiUrl: 'https://{{ tpl .Values.global.idGeneratorHostname $ }}/v1'
+  # Internal cluster URL — used by sibling pods (e.g. celery-worker) to reach
+  # the ID Generator without hopping through the ingress gateway. The K8s
+  # Service is named "<release>-id-generator" on port 80.
+  idGeneratorInternalUrl: 'http://{{ .Release.Name }}-id-generator/v1'
 
   # OpenG2P Audit Manager integration
   # Both `auditEnabled=true` AND `auditManagerUrl` must be set for emission
@@ -191,7 +199,7 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
     REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_PARTNER_API_MINIO_SECURE: "true"
+    REGISTRY_PARTNER_API_MINIO_SECURE: "false"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_PARTNER_API_DB_PASSWORD:
@@ -331,7 +339,7 @@ benePortalApi:
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
     REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
+    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "false"
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_BENE_PORTAL_API_DB_PASSWORD:
@@ -468,7 +476,7 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_AUTH_PROVIDER_API_URL: '{{ .Values.global.iamServiceUrl }}'
     REGISTRY_STAFF_PORTAL_API_KEYCLOAK_CLIENT_ID: '{{ tpl .Values.global.authClientId $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "false"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "default"
     REGISTRY_STAFF_PORTAL_API_TEMPLATE_BUCKET_NAME: "template"
 
@@ -611,7 +619,12 @@ staffPortalUi:
     APP_MNEMONIC: registry-ui
     APP_URL: 'https://{{ tpl .Values.global.registryHostname $ }}'
     APPLICATION_MNEMONIC: 'registry-staff-portal'
-    BACKEND_API_URL: 'https://staff-{{ tpl .Values.global.registryHostname $ }}'
+    # Server-side calls from the Next.js Staff Portal UI pod to the Staff
+    # Portal API stay inside the cluster — sibling K8s Service is named
+    # "<release>-staff-portal-api" on port 80. Browser-side calls from the
+    # client should use a separate NEXT_PUBLIC_* var pointing to the public
+    # https://staff-<host> hostname (add when needed).
+    BACKEND_API_URL: 'http://{{ .Release.Name }}-staff-portal-api'
     COOKIE_DOMAIN: '.{{ .Release.Namespace }}.openg2p.org'
     IAM_URL: '{{ .Values.global.iamServiceUrl }}'
     KEYCLOAK_LOGOUT_URL: '{{ tpl .Values.global.keycloakIssuerUrl $ }}/protocol/openid-connect/logout'
@@ -751,10 +764,10 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
     REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
+    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "false"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "default"
     REGISTRY_CELERY_WORKERS_TEMPLATE_BUCKET_NAME: "template"
-    REGISTRY_CELERY_WORKERS_FUNCTIONAL_ID_GENERATION_URL: '{{ tpl .Values.global.idGeneratorApiUrl $ }}'
+    REGISTRY_CELERY_WORKERS_FUNCTIONAL_ID_GENERATION_URL: '{{ tpl .Values.global.idGeneratorInternalUrl $ }}'
     REGISTRY_CELERY_WORKERS_ID_GENERATION_ALLOCATION_PATH: '/idgenerator/{id_type}/id'
     CELERY_APP: "openg2p_registry_celery_workers.main.celery_app"
     CELERY_OPTS: "worker -Q registry_worker_queue --loglevel=info"
