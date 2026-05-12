@@ -11,11 +11,15 @@ global:
   registryDBSecret: '{{ .Release.Name }}'
   registryDBUserPasswordKey: '{{ .Release.Name }}-db-user'
 
-  masterDataDB: 'commons_services_master_data'
+  # Master Data DB credentials — must match the values set by the
+  # openg2p-commons-services chart (release `commons-services`). Commons
+  # uses plain DB names (no release-name prefix) since only one Master
+  # Data instance is expected per environment.
+  masterDataDB: 'master_data'
   masterDataDBPort: 5432
-  masterDataDBUser: 'commons_services_master_data_user'
-  masterDataDBSecret: 'commons-services-master-data'
-  masterDataDBUserPasswordKey: 'commons-services-master-data-db-user'
+  masterDataDBUser: 'master_data_user'
+  masterDataDBSecret: 'master-data'
+  masterDataDBUserPasswordKey: 'master-data-db-user'
 
   # Redis
   redisInstallationName: '{{ .Release.Name }}-redis-master'
