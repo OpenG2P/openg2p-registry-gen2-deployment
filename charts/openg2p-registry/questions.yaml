@@ -19,6 +19,12 @@ questions:
   label: Keycloak Base URL
   group: General
 
+- variable: global.minioHost
+  description: "External MinIO S3 API endpoint reachable from end-user browsers (the registry generates pre-signed S3 URLs that browsers follow directly). Use the API hostname exposed by commons-base, NOT the Console hostname. Example: minio-api.<namespace>.openg2p.org (do not include scheme or trailing slash). MinIO is assumed to be served over HTTPS via the Istio gateway."
+  type: string
+  label: MinIO S3 API Host
+  group: General
+
 - variable: keycloak-init.enabled
   description: Run Keycloak Init to create realm and OIDC client
   type: boolean

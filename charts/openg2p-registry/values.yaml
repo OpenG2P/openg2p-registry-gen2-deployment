@@ -28,10 +28,15 @@ global:
   minioSecret: commons-minio
   minioAccessKey: root-user
   minioSecretKey: root-password
-  # Internal cluster service for MinIO. Pods reach MinIO directly via the
-  # commons-minio K8s Service on its API port (9000). The external hostname
-  # 'minio.<ns>.openg2p.org' is for browser/external clients only.
-  minioHost: 'commons-minio:9000'
+  # External MinIO S3 API endpoint. Must be reachable from end-user browsers
+  # because the registry generates pre-signed S3 URLs that browsers follow
+  # directly. Commons-base's Istio VirtualService exposes the S3 API at
+  # `minio-api.<basedomain>` (apiHost in commons-base values.yaml). The
+  # default below is a placeholder using the namespace + openg2p.org —
+  # OPERATORS MUST override this in `questions.yaml` / Rancher UI / values
+  # file to match their actual base domain. NOTE: `minio.<basedomain>` is
+  # the *Console* UI — do NOT point S3 clients at it.
+  minioHost: 'minio-api.{{ .Release.Namespace }}.openg2p.org'
 
   # Security & Authentication
   keymanagerInstallationName: commons-services-keymanager
@@ -203,7 +208,7 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
     REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_PARTNER_API_MINIO_SECURE: "false"
+    REGISTRY_PARTNER_API_MINIO_SECURE: "true"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_PARTNER_API_DB_PASSWORD:
@@ -343,7 +348,7 @@ benePortalApi:
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
     REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_BENE_PORTAL_API_DB_PASSWORD:
@@ -480,7 +485,7 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_AUTH_PROVIDER_API_URL: '{{ .Values.global.iamServiceUrl }}'
     REGISTRY_STAFF_PORTAL_API_KEYCLOAK_CLIENT_ID: '{{ tpl .Values.global.authClientId $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "false"
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
     REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "default"
     REGISTRY_STAFF_PORTAL_API_TEMPLATE_BUCKET_NAME: "template"
 
@@ -768,7 +773,7 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
     REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "false"
+    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
     REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "default"
     REGISTRY_CELERY_WORKERS_TEMPLATE_BUCKET_NAME: "template"
     REGISTRY_CELERY_WORKERS_FUNCTIONAL_ID_GENERATION_URL: '{{ tpl .Values.global.idGeneratorInternalUrl $ }}'
