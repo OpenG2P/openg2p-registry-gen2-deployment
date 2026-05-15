@@ -314,11 +314,11 @@ partnerApi:
   # Memory profile is steady-state low (~150-200Mi idle), with significant
   # spikes during bulk ingest of partner records (large multipart payloads,
   # deserialised into Python objects, then chunked and queued via Celery).
-  # Limit raised to 768Mi to absorb peak ingest bursts; request 256Mi
-  # gives the scheduler a realistic footprint to plan around.
+  # Limit raised to 1Gi to absorb peak ingest bursts (lesser value was causing
+  # OOM); request 256Mi gives the scheduler a realistic footprint to plan around.
   resources:
     limits:
-      memory: 768Mi
+      memory: 1Gi
     requests:
       cpu: 50m
       memory: 256Mi
