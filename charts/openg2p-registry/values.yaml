@@ -72,7 +72,10 @@ global:
   # Both `auditEnabled=true` AND `auditManagerUrl` must be set for emission
   # to actually happen. Defaults below mean "audit feature wired but turned
   # off" — safe to ship; per-environment overrides flip it on.
-  # Available from staff-portal-api v1.1.x (chart 4.1.x).
+  # Wired into both staff-portal-api and partner-api (chart 4.1.x). Each
+  # service consumes these globals via its own envVars block below.
+  # Older service images that lack AuditMiddleware simply ignore the env
+  # vars — no error.
   auditEnabled: true
   auditManagerUrl: 'http://commons-services-auditmanager:80'
   # Set to false to skip auditing of rejected anonymous calls (401/403
@@ -108,6 +111,19 @@ dbSeed:
     repository: openg2p/openg2p-farmer-registry-db-seed
     tag: 1.0.3
     pullPolicy: Always
+
+  # DB Seed runs as a one-shot Helm post-install/post-upgrade hook Job.
+  # It's just psql replaying SQL scripts — minimal footprint, but the
+  # configuration meta-data load can briefly spike memory parsing larger
+  # files. Tight envelope (64Mi requested / 128Mi limit) keeps it cheap
+  # without starving it. Increase the limit if you ship variant extensions
+  # with very large seed SQL.
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
 
 postgres-init:
   enabled: true
@@ -210,6 +226,18 @@ partnerApi:
     REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
     REGISTRY_PARTNER_API_MINIO_SECURE: "true"
     REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
+
+    # OpenG2P Audit Manager integration. No-op unless both AUDIT_ENABLED=true
+    # and AUDIT_MANAGER_URL are set (controlled via global.auditEnabled and
+    # global.auditManagerUrl). Safe to leave wired in older images that lack
+    # the AuditMiddleware — env vars are simply ignored there. Partner-api
+    # actor identity defaults to anonymous until controllers opt in to set
+    # request.state.audit_actor — see the Audit Manager docs (Integration
+    # with Registry → Audit Middleware — Partner API) for the enrichment
+    # pattern.
+    REGISTRY_PARTNER_API_AUDIT_ENABLED: '{{ .Values.global.auditEnabled }}'
+    REGISTRY_PARTNER_API_AUDIT_MANAGER_URL: '{{ .Values.global.auditManagerUrl }}'
+    REGISTRY_PARTNER_API_AUDIT_ANONYMOUS_FAILURES: '{{ .Values.global.auditAnonymousFailures }}'
   envVarsFrom:
     REGISTRY_PARTNER_API_DB_PASSWORD:
       secretKeyRef:
@@ -281,6 +309,19 @@ partnerApi:
       enabled: false
 
   containerPort: 8000
+
+  # Partner API is a FastAPI process that handles partner ingestion calls.
+  # Memory profile is steady-state low (~150-200Mi idle), with brief spikes
+  # during bulk ingest of partner records. Limit set to 512Mi to absorb
+  # spikes without OOM-killing; request 256Mi gives the scheduler a realistic
+  # footprint to plan around. CPU is bursty but rarely sustained, so we
+  # request a small floor (50m = 5% of a core) and let it burst un-capped.
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
 
 benePortalApi:
   enabled: false
@@ -410,6 +451,19 @@ benePortalApi:
       enabled: false
 
   containerPort: 8000
+
+  # Beneficiary Portal API is a FastAPI process serving the beneficiary
+  # self-service portal. Workload profile mirrors Partner API: low baseline,
+  # occasional per-request bursts. Default to the same envelope (256Mi
+  # requested / 512Mi limit) for predictability across all three API pods.
+  # Disabled by default (enabled: false above) — sizing assumes it will be
+  # turned on in production deployments that surface a beneficiary UI.
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
 
 staffPortalApi:
   enabled: true
@@ -562,6 +616,19 @@ staffPortalApi:
 
   containerPort: 8000
 
+  # Staff Portal API is the primary read-write FastAPI for registry staff
+  # operations — handles registrant CRUD, lookup, search, intake validation,
+  # and MinIO pre-signed URL generation. Heavier than Partner API because
+  # search/listing endpoints can return larger result sets. Same envelope
+  # as siblings for consistency (256Mi requested / 512Mi limit); if you see
+  # OOM events under heavy listing load, bump the limit to 1Gi first.
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
 staffPortalUi:
   enabled: true
   nameOverride: staff-portal-ui
@@ -596,6 +663,18 @@ staffPortalUi:
     externalTrafficPolicy: Cluster
 
   containerPort: 3000
+
+  # Staff Portal UI is a Next.js SSR app. Node + SSR rendering keeps RSS
+  # around 200-300Mi steady-state; spikes during cold start (Next.js JIT)
+  # and page-prerender bursts. Limit of 512Mi avoids OOM during first-hit
+  # render of large list pages. CPU is mostly idle between user actions —
+  # 50m request is enough; bursts handled by un-capped limit.
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
 
   istio:
     enabled: true
@@ -691,6 +770,18 @@ celeryBeatProducer:
     tag: "1.0.2"
     pullPolicy: Always
 
+  # Celery Beat Producer is a lightweight scheduler that wakes up every
+  # few seconds, enqueues periodic tasks to Redis, and goes back to sleep.
+  # Memory footprint stays well under 100Mi; CPU is near-zero between
+  # ticks. Small envelope (128Mi requested / 256Mi limit) reflects this.
+  # If you raise the beat-frequency knobs significantly, monitor and adjust.
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 20m
+      memory: 128Mi
+
   envVars:
     REGISTRY_CELERY_BEAT_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
     REGISTRY_CELERY_BEAT_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
@@ -752,6 +843,22 @@ celeryWorker:
     repository: openg2p/openg2p-farmer-registry-celery
     tag: "1.0.2"
     pullPolicy: Always
+
+  # Celery Worker is the largest variable-load component in the chart. It
+  # processes async tasks (bulk partner ingest, data transformation,
+  # classification) — RSS can sit at ~200Mi idle but spike past 800Mi when
+  # crunching large CSV ingests. Limit at 1Gi gives headroom for the worst
+  # observed peak; request 512Mi reserves enough that the scheduler doesn't
+  # over-pack workers onto a node. CPU request 100m (10% core) reflects
+  # active processing baseline; bursts allowed up to node capacity. If
+  # workloads grow, consider horizontal scaling (replicaCount) before
+  # raising per-pod limits.
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
 
   envVars:
     REGISTRY_CELERY_WORKERS_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'

@@ -95,4 +95,7 @@ spec:
                   key: {{ include "common.tplvalues.render" (dict "value" .Values.global.registryDBUserPasswordKey "context" $) | quote }}
             - name: LOAD_SAMPLE_DATA
               value: {{ .Values.dbSeed.loadSampleData | quote }}
+          {{- if .Values.dbSeed.resources }}
+          resources: {{- include "common.tplvalues.render" (dict "value" .Values.dbSeed.resources "context" $) | nindent 12 }}
+          {{- end }}
 {{- end }}
