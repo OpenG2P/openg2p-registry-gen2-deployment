@@ -207,11 +207,11 @@ partnerApi:
 
     REGISTRY_PARTNER_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
-    REGISTRY_CORE_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
-    REGISTRY_CORE_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
-    REGISTRY_CORE_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
-    REGISTRY_CORE_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
-    REGISTRY_CORE_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
+    REGISTRY_PARTNER_API_MASTER_DATA_DB_DRIVER: 'postgresql+asyncpg'
+    REGISTRY_PARTNER_API_MASTER_DATA_DB_USERNAME: '{{ .Values.global.masterDataDBUser }}'
+    REGISTRY_PARTNER_API_MASTER_DATA_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_PARTNER_API_MASTER_DATA_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_PARTNER_API_MASTER_DATA_DB_DBNAME: '{{ .Values.global.masterDataDB }}'
 
     REGISTRY_PARTNER_API_KEYMANAGER_API_BASE_URL: "{{ .Values.global.keymanagerInstallationName }}/v1/keymanager"
     REGISTRY_PARTNER_API_KEYMANAGER_API_TIMEOUT: 10
@@ -243,7 +243,7 @@ partnerApi:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
-    REGISTRY_CORE_MASTER_DATA_DB_PASSWORD:
+    REGISTRY_PARTNER_API_MASTER_DATA_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.masterDataDBSecret $ }}'
         key: '{{ tpl .Values.global.masterDataDBUserPasswordKey $ }}'
