@@ -37,6 +37,9 @@ global:
   # file to match their actual base domain. NOTE: `minio.<basedomain>` is
   # the *Console* UI — do NOT point S3 clients at it.
   minioHost: 'minio-api.{{ .Release.Namespace }}.openg2p.org'
+  defaultBucketName: "default"
+  templateBucketName: "template"
+  minioSecure: true
 
   # Security & Authentication
   keymanagerInstallationName: commons-services-keymanager
@@ -107,6 +110,8 @@ dbSeed:
   enabled: true
   # Load sample/demo data into the registry (disabled by default)
   loadSampleData: true
+  # Upload flat Jinja templates from the db-seed image to MinIO after SQL seed
+  loadTemplates: true
   image:
     repository: openg2p/openg2p-farmer-registry-db-seed
     tag: 1.0.3
@@ -224,8 +229,9 @@ partnerApi:
     REGISTRY_PARTNER_API_KEYMANAGER_SIGN_REF_ID: ""
 
     REGISTRY_PARTNER_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_PARTNER_API_MINIO_SECURE: "true"
-    REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "templates"
+    REGISTRY_PARTNER_API_MINIO_SECURE: '{{ .Values.global.minioSecure }}'
+    REGISTRY_PARTNER_API_MINIO_BUCKET_NAME: "{{ .Values.global.defaultBucketName }}"
+    REGISTRY_PARTNER_API_TEMPLATE_BUCKET_NAME: "{{ .Values.global.templateBucketName }}"
 
     # OpenG2P Audit Manager integration. No-op unless both AUDIT_ENABLED=true
     # and AUDIT_MANAGER_URL are set (controlled via global.auditEnabled and
@@ -389,7 +395,7 @@ benePortalApi:
     REGISTRY_BENE_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
 
     REGISTRY_BENE_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: "true"
+    REGISTRY_BENE_PORTAL_API_MINIO_SECURE: '{{ .Values.global.minioSecure }}'
     REGISTRY_BENE_PORTAL_API_MINIO_BUCKET_NAME: "templates"
   envVarsFrom:
     REGISTRY_BENE_PORTAL_API_DB_PASSWORD:
@@ -539,9 +545,9 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_AUTH_PROVIDER_API_URL: '{{ .Values.global.iamServiceUrl }}'
     REGISTRY_STAFF_PORTAL_API_KEYCLOAK_CLIENT_ID: '{{ tpl .Values.global.authClientId $ }}'
     REGISTRY_STAFF_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: "true"
-    REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "default"
-    REGISTRY_STAFF_PORTAL_API_TEMPLATE_BUCKET_NAME: "template"
+    REGISTRY_STAFF_PORTAL_API_MINIO_SECURE: '{{ .Values.global.minioSecure }}'
+    REGISTRY_STAFF_PORTAL_API_MINIO_BUCKET_NAME: "{{ .Values.global.defaultBucketName }}"
+    REGISTRY_STAFF_PORTAL_API_TEMPLATE_BUCKET_NAME: "{{ .Values.global.templateBucketName }}"
 
     # OpenG2P Audit Manager integration. No-op unless both AUDIT_ENABLED=true
     # and AUDIT_MANAGER_URL are set (controlled via global.auditEnabled and
@@ -886,9 +892,9 @@ celeryWorker:
     REGISTRY_CELERY_WORKERS_WORKER_MAX_ATTEMPTS: 5
 
     REGISTRY_CELERY_WORKERS_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
-    REGISTRY_CELERY_WORKERS_MINIO_SECURE: "true"
-    REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "default"
-    REGISTRY_CELERY_WORKERS_TEMPLATE_BUCKET_NAME: "template"
+    REGISTRY_CELERY_WORKERS_MINIO_SECURE: '{{ .Values.global.minioSecure }}'
+    REGISTRY_CELERY_WORKERS_MINIO_BUCKET_NAME: "{{ .Values.global.defaultBucketName }}"
+    REGISTRY_CELERY_WORKERS_TEMPLATE_BUCKET_NAME: "{{ .Values.global.templateBucketName }}"
     REGISTRY_CELERY_WORKERS_FUNCTIONAL_ID_GENERATION_URL: '{{ tpl .Values.global.idGeneratorInternalUrl $ }}'
     REGISTRY_CELERY_WORKERS_ID_GENERATION_ALLOCATION_PATH: '/idgenerator/{id_type}/id'
     CELERY_APP: "openg2p_registry_celery_workers.main.celery_app"
