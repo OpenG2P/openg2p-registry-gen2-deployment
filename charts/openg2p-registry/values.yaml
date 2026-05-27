@@ -504,9 +504,51 @@ agentPortalApi:
 
   openapiRootPath: /
 
-  # Inji Certify base URL + credential config the API pushes to.
+  # Inji Certify base URL the API pushes to.
   certifyBaseUrl: 'http://commons-services-inji-certify/v1/certify'
-  certifyCredentialConfigId: 'OpenG2PBeneficiaryCredential'
+
+  # ── VC definitions (module-owned, Helm-driven) ────────────────────────────
+  # One entry per issuable VC type — supports MULTIPLE VCs per registry (e.g. an
+  # ID card vs ID + socio-economic). Each entry has two parts:
+  #   • API mapping  (config_id, credential_types, view, claim_columns) — passed
+  #     to the Agent Portal API as REGISTRY_AGENT_PORTAL_API_VC_DEFINITIONS.
+  #   • certifyConfig — the Certify credential_config registered via the
+  #     credential-config-register Job (POST /credential-configurations).
+  # The source `view` is created by the registry extension (deploys with models).
+  vcIssuance:
+    # Register credential_configs in Certify on install via the API.
+    registerEnabled: true
+    issuer:
+      did: 'did:web:REPLACE-WITH-ISSUER-DID-HOST'
+      keyManagerAppId: CERTIFY_VC_SIGN_ED25519
+      keyManagerRefId: ED25519_SIGN
+      signatureAlgo: EdDSA
+      signatureCryptoSuite: Ed25519Signature2020
+  vcDefinitions:
+    - config_id: OpenG2PBeneficiaryCredential
+      credential_types: ["VerifiableCredential", "OpenG2PBeneficiaryCredential"]
+      view: beneficiary_vc_view
+      claim_columns: ["functionalRecordId", "fullName", "dateOfBirth"]
+      # Certify credential_config (POSTed to /credential-configurations).
+      certifyConfig:
+        credentialConfigKeyId: OpenG2PBeneficiaryCredential
+        credentialFormat: ldp_vc
+        credentialTypes: ["VerifiableCredential", "OpenG2PBeneficiaryCredential"]
+        contextURLs: ["https://www.w3.org/2018/credentials/v1"]
+        scope: openg2p_beneficiary_vc_ldp
+        # base64 Velocity template (inline JSON-LD context; uses ${_issuer}).
+        vcTemplate: 'ewogICJAY29udGV4dCI6IFsKICAgICJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsCiAgICB7CiAgICAgICJPcGVuRzJQQmVuZWZpY2lhcnlDcmVkZW50aWFsIjogImh0dHBzOi8vb3BlbmcycC5vcmcvbnMjT3BlbkcyUEJlbmVmaWNpYXJ5Q3JlZGVudGlhbCIsCiAgICAgICJmdW5jdGlvbmFsUmVjb3JkSWQiOiAiaHR0cHM6Ly9zY2hlbWEub3JnL2lkZW50aWZpZXIiLAogICAgICAiZnVsbE5hbWUiOiAiaHR0cHM6Ly9zY2hlbWEub3JnL25hbWUiLAogICAgICAiZGF0ZU9mQmlydGgiOiAiaHR0cHM6Ly9zY2hlbWEub3JnL2JpcnRoRGF0ZSIKICAgIH0sCiAgICAiaHR0cHM6Ly93M2lkLm9yZy9zZWN1cml0eS9zdWl0ZXMvZWQyNTUxOS0yMDIwL3YxIgogIF0sCiAgImlzc3VlciI6ICIke19pc3N1ZXJ9IiwKICAidHlwZSI6IFsKICAgICJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsCiAgICAiT3BlbkcyUEJlbmVmaWNpYXJ5Q3JlZGVudGlhbCIKICBdLAogICJpc3N1YW5jZURhdGUiOiAiJHt2YWxpZEZyb219IiwKICAiZXhwaXJhdGlvbkRhdGUiOiAiJHt2YWxpZFVudGlsfSIsCiAgImNyZWRlbnRpYWxTdWJqZWN0IjogewogICAgImlkIjogIiR7X2hvbGRlcklkfSIsCiAgICAiZnVuY3Rpb25hbFJlY29yZElkIjogIiR7ZnVuY3Rpb25hbFJlY29yZElkfSIsCiAgICAiZnVsbE5hbWUiOiAiJHtmdWxsTmFtZX0iLAogICAgImRhdGVPZkJpcnRoIjogIiR7ZGF0ZU9mQmlydGh9IgogIH0KfQ=='
+        displayOrder: ["functionalRecordId", "fullName", "dateOfBirth"]
+        metaDataDisplay:
+          - name: "OpenG2P Beneficiary Credential"
+            locale: en
+        credentialSubjectDefinition:
+          functionalRecordId: { display: [{ name: "Functional Record ID", locale: en }] }
+          fullName: { display: [{ name: "Full Name", locale: en }] }
+          dateOfBirth: { display: [{ name: "Date of Birth", locale: en }] }
+        qrSettings:
+          - { "Full Name": "${fullName}", "Functional ID": "${functionalRecordId}", "Date Of Birth": "${dateOfBirth}" }
+        qrSignatureAlgo: EdDSA
 
   service:
     type: ClusterIP
@@ -542,7 +584,9 @@ agentPortalApi:
     REGISTRY_AGENT_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
     REGISTRY_AGENT_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
     REGISTRY_AGENT_PORTAL_API_CERTIFY_BASE_URL: '{{ .Values.certifyBaseUrl }}'
-    REGISTRY_AGENT_PORTAL_API_CERTIFY_CREDENTIAL_CONFIG_ID: '{{ .Values.certifyCredentialConfigId }}'
+    # JSON list of VC definitions (mapping fields only — Certify-side certifyConfig
+    # is consumed by the registration Job, not the API).
+    REGISTRY_AGENT_PORTAL_API_VC_DEFINITIONS: '{{ $o := list }}{{ range .Values.vcDefinitions }}{{ $o = append $o (dict "config_id" .config_id "credential_types" .credential_types "view" .view "claim_columns" .claim_columns) }}{{ end }}{{ $o | toJson }}'
   envVarsFrom:
     REGISTRY_AGENT_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
