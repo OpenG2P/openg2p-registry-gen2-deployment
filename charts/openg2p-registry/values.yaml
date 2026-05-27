@@ -505,7 +505,7 @@ agentPortalApi:
   openapiRootPath: /
 
   # Inji Certify base URL + credential config the API pushes to.
-  certifyBaseUrl: 'http://commons-services-injicertify/v1/certify'
+  certifyBaseUrl: 'http://commons-services-inji-certify/v1/certify'
   certifyCredentialConfigId: 'OpenG2PBeneficiaryCredential'
 
   service:
