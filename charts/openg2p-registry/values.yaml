@@ -528,10 +528,14 @@ agentPortalApi:
   # MINIO bucket holding registrant photos (the API fetches by object key).
   minioBucket: registry
 
-  # SVG design templates for the printed card, keyed by filename. The concrete
-  # chart (NSR) supplies the SVG(s); they're mounted into the API at
-  # /app/pdf-templates and referenced per VC via vcDefinitions[].svg_template.
+  # SVG design templates for the printed card. Two ways to supply them (the
+  # concrete chart, e.g. NSR, chooses one) — both mount at /app/pdf-templates and
+  # are referenced per VC via vcDefinitions[].svg_template:
+  #   • svgTemplates: inline map {filename: svg}; this chart builds the ConfigMap.
+  #   • svgConfigMap:  name of an EXTERNAL ConfigMap the concrete chart builds
+  #     from a real .svg file (preferred for a designer-owned template).
   svgTemplates: {}
+  svgConfigMap: ""
 
   # ── VC definitions (module-owned, Helm-driven) ────────────────────────────
   # PLATFORM PLACEHOLDER. This is the generic base registry chart — it ships NO

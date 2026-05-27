@@ -110,9 +110,13 @@ spec:
           {{- if and .Values.readinessProbe .Values.readinessProbe.enabled }}
           readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
           {{- end }}
-          {{- if or .Values.extraVolumeMounts .Values.svgTemplates }}
+          {{- /* SVG card templates: either an inline map (svgTemplates) built by
+                 this chart, or an external ConfigMap (svgConfigMap) supplied by
+                 the concrete chart (e.g. NSR builds it from an .svg file). */}}
+          {{- $svgCm := .Values.svgConfigMap | default (ternary (printf "%s-agent-svg-templates" .Release.Name) "" (not (empty .Values.svgTemplates))) }}
+          {{- if or .Values.extraVolumeMounts $svgCm }}
           volumeMounts:
-            {{- if .Values.svgTemplates }}
+            {{- if $svgCm }}
             - name: svg-templates
               mountPath: /app/pdf-templates
               readOnly: true
@@ -124,12 +128,12 @@ spec:
         {{- if .Values.sidecars }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
-      {{- if or .Values.extraVolumes .Values.svgTemplates }}
+      {{- if or .Values.extraVolumes $svgCm }}
       volumes:
-        {{- if .Values.svgTemplates }}
+        {{- if $svgCm }}
         - name: svg-templates
           configMap:
-            name: {{ .Release.Name }}-agent-svg-templates
+            name: {{ tpl $svgCm $ }}
         {{- end }}
         {{- if .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
