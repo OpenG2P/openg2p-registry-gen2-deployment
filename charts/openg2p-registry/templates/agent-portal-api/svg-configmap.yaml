@@ -1,0 +1,14 @@
+{{- if and .Values.agentPortalApi.enabled .Values.agentPortalApi.svgTemplates }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-agent-svg-templates
+  labels:
+    app.kubernetes.io/name: agent-portal-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+{{- range $name, $content := .Values.agentPortalApi.svgTemplates }}
+  {{ $name }}: |-
+{{ $content | indent 4 }}
+{{- end }}
+{{- end }}

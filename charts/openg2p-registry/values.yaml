@@ -525,6 +525,14 @@ agentPortalApi:
   # Inji Certify base URL the API pushes to.
   certifyBaseUrl: 'http://commons-services-inji-certify/v1/certify'
 
+  # MINIO bucket holding registrant photos (the API fetches by object key).
+  minioBucket: registry
+
+  # SVG design templates for the printed card, keyed by filename. The concrete
+  # chart (NSR) supplies the SVG(s); they're mounted into the API at
+  # /app/pdf-templates and referenced per VC via vcDefinitions[].svg_template.
+  svgTemplates: {}
+
   # ── VC definitions (module-owned, Helm-driven) ────────────────────────────
   # PLATFORM PLACEHOLDER. This is the generic base registry chart — it ships NO
   # concrete VC definitions. The real, registry-specific list is supplied by the
@@ -577,12 +585,25 @@ agentPortalApi:
     REGISTRY_AGENT_PORTAL_API_CERTIFY_BASE_URL: '{{ .Values.certifyBaseUrl }}'
     # JSON list of VC definitions (mapping fields only — Certify-side certifyConfig
     # is consumed by the registration Job, not the API).
-    REGISTRY_AGENT_PORTAL_API_VC_DEFINITIONS: '{{ $o := list }}{{ range .Values.vcDefinitions }}{{ $o = append $o (dict "config_id" .config_id "credential_types" .credential_types "view" .view "claim_columns" .claim_columns) }}{{ end }}{{ $o | toJson }}'
+    REGISTRY_AGENT_PORTAL_API_VC_DEFINITIONS: '{{ $o := list }}{{ range .Values.vcDefinitions }}{{ $o = append $o (dict "config_id" .config_id "credential_types" .credential_types "view" .view "claim_columns" .claim_columns "photo_key_column" (.photo_key_column | default "") "face_claim" (.face_claim | default "face") "qr_claim_path" (.qr_claim_path | default "claim169.qrCode") "svg_template" (.svg_template | default "")) }}{{ end }}{{ $o | toJson }}'
+    REGISTRY_AGENT_PORTAL_API_SVG_TEMPLATE_DIR: /app/pdf-templates
+    REGISTRY_AGENT_PORTAL_API_MINIO_ENDPOINT: '{{ tpl .Values.global.minioHost $ }}'
+    REGISTRY_AGENT_PORTAL_API_MINIO_SECURE: "true"
+    REGISTRY_AGENT_PORTAL_API_MINIO_BUCKET: '{{ .Values.minioBucket }}'
   envVarsFrom:
     REGISTRY_AGENT_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
         name: '{{ tpl .Values.global.registryDBSecret $ }}'
         key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+    # MINIO creds for fetching registrant photos (same secret the other APIs use).
+    REGISTRY_AGENT_PORTAL_API_MINIO_ACCESS_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioSecret $ }}'
+        key: '{{ tpl .Values.global.minioAccessKey $ }}'
+    REGISTRY_AGENT_PORTAL_API_MINIO_SECRET_KEY:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.minioSecret $ }}'
+        key: '{{ tpl .Values.global.minioSecretKey $ }}'
 
   startupProbe:
     enabled: true
