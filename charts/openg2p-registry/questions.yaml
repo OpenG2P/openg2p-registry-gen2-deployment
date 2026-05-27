@@ -160,6 +160,12 @@ questions:
   label: Load Sample Data
   group: DB Seed
 
+- variable: dbSeed.loadTemplates
+  description: Upload Jinja templates from the db-seed image to MinIO after SQL seed (object key = filename). Requires MinIO to be reachable at global.minioHost.
+  type: boolean
+  label: Load Templates to MinIO
+  group: DB Seed
+
 - variable: dbSeed.image.repository
   description: Docker image repository for the DB seed container
   type: string
