@@ -2,6 +2,18 @@ global:
   registryVariant: 'farmer'
   registryHostname: '{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
 
+  # ── VC issuer (ENV-LEVEL — one issuer/authority per environment) ──────────
+  # Set once per environment (at Inji Certify install) and shared with this
+  # release's env values. The credential-config-register Job stamps these onto
+  # every credential_config it registers. The MODULE owns the VC *definitions*
+  # (templates/fields/views) — NOT the issuer.
+  vcIssuer:
+    did: 'did:web:REPLACE-WITH-ISSUER-DID-HOST'
+    keyManagerAppId: CERTIFY_VC_SIGN_ED25519
+    keyManagerRefId: ED25519_SIGN
+    signatureAlgo: EdDSA
+    signatureCryptoSuite: Ed25519Signature2020
+
   # Database
   postgresqlHost: commons-postgresql
 
@@ -514,47 +526,20 @@ agentPortalApi:
   certifyBaseUrl: 'http://commons-services-inji-certify/v1/certify'
 
   # ── VC definitions (module-owned, Helm-driven) ────────────────────────────
-  # One entry per issuable VC type — supports MULTIPLE VCs per registry (e.g. an
-  # ID card vs ID + socio-economic). Each entry has two parts:
-  #   • API mapping  (config_id, credential_types, view, claim_columns) — passed
-  #     to the Agent Portal API as REGISTRY_AGENT_PORTAL_API_VC_DEFINITIONS.
-  #   • certifyConfig — the Certify credential_config registered via the
-  #     credential-config-register Job (POST /credential-configurations).
-  # The source `view` is created by the registry extension (deploys with models).
+  # PLATFORM PLACEHOLDER. This is the generic base registry chart — it ships NO
+  # concrete VC definitions. The real, registry-specific list is supplied by the
+  # consuming chart (e.g. national-social-registry's values.yaml under
+  # `openg2p-registry.agentPortalApi.vcDefinitions`).
+  #
+  # Each entry = API mapping (config_id, credential_types, view, claim_columns)
+  # + a `certifyConfig` (the Certify credential_config registered via the
+  # credential-config-register Job). The source `view` is created by the
+  # registry extension. Supports MULTIPLE VC types per registry.
   vcIssuance:
-    # Register credential_configs in Certify on install via the API.
+    # Register credential_configs in Certify on install via the API. The issuer
+    # (DID + signing key) is ENV-LEVEL — global.vcIssuer (set at Certify install).
     registerEnabled: true
-    issuer:
-      did: 'did:web:REPLACE-WITH-ISSUER-DID-HOST'
-      keyManagerAppId: CERTIFY_VC_SIGN_ED25519
-      keyManagerRefId: ED25519_SIGN
-      signatureAlgo: EdDSA
-      signatureCryptoSuite: Ed25519Signature2020
-  vcDefinitions:
-    - config_id: OpenG2PBeneficiaryCredential
-      credential_types: ["VerifiableCredential", "OpenG2PBeneficiaryCredential"]
-      view: beneficiary_vc_view
-      claim_columns: ["functionalRecordId", "fullName", "dateOfBirth"]
-      # Certify credential_config (POSTed to /credential-configurations).
-      certifyConfig:
-        credentialConfigKeyId: OpenG2PBeneficiaryCredential
-        credentialFormat: ldp_vc
-        credentialTypes: ["VerifiableCredential", "OpenG2PBeneficiaryCredential"]
-        contextURLs: ["https://www.w3.org/2018/credentials/v1"]
-        scope: openg2p_beneficiary_vc_ldp
-        # base64 Velocity template (inline JSON-LD context; uses ${_issuer}).
-        vcTemplate: 'ewogICJAY29udGV4dCI6IFsKICAgICJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsCiAgICB7CiAgICAgICJPcGVuRzJQQmVuZWZpY2lhcnlDcmVkZW50aWFsIjogImh0dHBzOi8vb3BlbmcycC5vcmcvbnMjT3BlbkcyUEJlbmVmaWNpYXJ5Q3JlZGVudGlhbCIsCiAgICAgICJmdW5jdGlvbmFsUmVjb3JkSWQiOiAiaHR0cHM6Ly9zY2hlbWEub3JnL2lkZW50aWZpZXIiLAogICAgICAiZnVsbE5hbWUiOiAiaHR0cHM6Ly9zY2hlbWEub3JnL25hbWUiLAogICAgICAiZGF0ZU9mQmlydGgiOiAiaHR0cHM6Ly9zY2hlbWEub3JnL2JpcnRoRGF0ZSIKICAgIH0sCiAgICAiaHR0cHM6Ly93M2lkLm9yZy9zZWN1cml0eS9zdWl0ZXMvZWQyNTUxOS0yMDIwL3YxIgogIF0sCiAgImlzc3VlciI6ICIke19pc3N1ZXJ9IiwKICAidHlwZSI6IFsKICAgICJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsCiAgICAiT3BlbkcyUEJlbmVmaWNpYXJ5Q3JlZGVudGlhbCIKICBdLAogICJpc3N1YW5jZURhdGUiOiAiJHt2YWxpZEZyb219IiwKICAiZXhwaXJhdGlvbkRhdGUiOiAiJHt2YWxpZFVudGlsfSIsCiAgImNyZWRlbnRpYWxTdWJqZWN0IjogewogICAgImlkIjogIiR7X2hvbGRlcklkfSIsCiAgICAiZnVuY3Rpb25hbFJlY29yZElkIjogIiR7ZnVuY3Rpb25hbFJlY29yZElkfSIsCiAgICAiZnVsbE5hbWUiOiAiJHtmdWxsTmFtZX0iLAogICAgImRhdGVPZkJpcnRoIjogIiR7ZGF0ZU9mQmlydGh9IgogIH0KfQ=='
-        displayOrder: ["functionalRecordId", "fullName", "dateOfBirth"]
-        metaDataDisplay:
-          - name: "OpenG2P Beneficiary Credential"
-            locale: en
-        credentialSubjectDefinition:
-          functionalRecordId: { display: [{ name: "Functional Record ID", locale: en }] }
-          fullName: { display: [{ name: "Full Name", locale: en }] }
-          dateOfBirth: { display: [{ name: "Date of Birth", locale: en }] }
-        qrSettings:
-          - { "Full Name": "${fullName}", "Functional ID": "${functionalRecordId}", "Date Of Birth": "${dateOfBirth}" }
-        qrSignatureAlgo: EdDSA
+  vcDefinitions: []
 
   service:
     type: ClusterIP
