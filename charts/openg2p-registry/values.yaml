@@ -465,6 +465,142 @@ benePortalApi:
       cpu: 50m
       memory: 256Mi
 
+# ---------------------------------------------------------------------------
+# Agent Portal API — Phase-1 VC issuance. Reads the registry beneficiary_vc_view
+# and pushes claims to Inji Certify (pre-authorized-code), then renders the PDF/QR.
+# Image built from openg2p-registry-gen2-apis/agent-portal-api (tag g2p-4929).
+# Requires Inji Certify reachable at certifyBaseUrl (deployed via commons-services).
+# ---------------------------------------------------------------------------
+agentPortalApi:
+  enabled: false
+  nameOverride: agent-portal-api
+  hostname: 'agent-{{ tpl .Values.global.registryHostname $ }}'
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  updateStrategy:
+    type: RollingUpdate
+  serviceAccount:
+    create: false
+    name: ""
+  # Built by the NSR docker pipeline (national-social-registry/docker/agent-portal-api).
+  image:
+    repository: openg2p/openg2p-nsr-agent-portal-api
+    tag: "g2p-4929"
+    pullPolicy: Always
+  podSecurityContext:
+    enabled: false
+    fsGroup: 1000
+  containerSecurityContext:
+    enabled: false
+    runAsUser: 1000
+    runAsNonRoot: true
+
+  openapiRootPath: /
+
+  # Inji Certify base URL + credential config the API pushes to.
+  certifyBaseUrl: 'http://commons-services-injiCertify-certify/v1/certify'
+  certifyCredentialConfigId: 'OpenG2PBeneficiaryCredential'
+
+  service:
+    type: ClusterIP
+    port: 80
+    externalTrafficPolicy: Cluster
+
+  istio:
+    enabled: true
+    virtualservice:
+      enabled: true
+      host: ""
+      gateway: "internal"
+      destination: '{{ .Release.Name }}-agent-portal-api'
+      destinationPort: '{{ .Values.agentPortalApi.service.port }}'
+      prefix: '{{ .Values.openapiRootPath }}/'
+      rewriteUri: "/"
+    gateway:
+      enabled: false
+      host: ""
+      ingressController:
+        istio: ingressgateway
+      httpTlsRedirect: false
+      httpEnabled: true
+      httpsEnabled: false
+      tls:
+        mode: SIMPLE
+        credentialName: ""
+
+  envVars:
+    REGISTRY_AGENT_PORTAL_API_DB_HOSTNAME: '{{ .Values.global.postgresqlHost }}'
+    REGISTRY_AGENT_PORTAL_API_DB_DBNAME: '{{ tpl .Values.global.registryDB $ }}'
+    REGISTRY_AGENT_PORTAL_API_DB_PORT: '{{ .Values.global.registryDBPort }}'
+    REGISTRY_AGENT_PORTAL_API_DB_USERNAME: '{{ tpl .Values.global.registryDBUser $ }}'
+    REGISTRY_AGENT_PORTAL_API_OPENAPI_ROOT_PATH: '{{ .Values.openapiRootPath }}'
+    REGISTRY_AGENT_PORTAL_API_CERTIFY_BASE_URL: '{{ .Values.certifyBaseUrl }}'
+    REGISTRY_AGENT_PORTAL_API_CERTIFY_CREDENTIAL_CONFIG_ID: '{{ .Values.certifyCredentialConfigId }}'
+  envVarsFrom:
+    REGISTRY_AGENT_PORTAL_API_DB_PASSWORD:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.registryDBSecret $ }}'
+        key: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
+
+  startupProbe:
+    enabled: true
+    httpGet:
+      path: /ping
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /ping
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /ping
+      port: http
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  postgresCheckerInit:
+    enabled: true
+    image:
+      repository: jbergknoff/postgresql-client
+      tag: latest
+      pullPolicy: IfNotPresent
+    command:
+    - 'sh'
+    args:
+    - '-c'
+    - 'until pg_isready -U ${REGISTRY_AGENT_PORTAL_API_DB_USERNAME} -h ${REGISTRY_AGENT_PORTAL_API_DB_HOSTNAME} -p ${REGISTRY_AGENT_PORTAL_API_DB_PORT:-5432} -d ${REGISTRY_AGENT_PORTAL_API_DB_DBNAME:-registrydb}; do sleep 3; done'
+    containerSecurityContext:
+      enabled: false
+
+  containerPort: 8000
+
+  resources:
+    limits:
+      memory: 768Mi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+
 staffPortalApi:
   enabled: true
   nameOverride: staff-portal-api
