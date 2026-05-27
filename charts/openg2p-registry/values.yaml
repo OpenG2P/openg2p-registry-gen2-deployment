@@ -474,7 +474,9 @@ benePortalApi:
 agentPortalApi:
   enabled: false
   nameOverride: agent-portal-api
-  hostname: 'agent-{{ tpl .Values.global.registryHostname $ }}'
+  # API host: agent-api.<registryHostname>. (The agent portal UI, when added,
+  # takes agent.<registryHostname>.)
+  hostname: 'agent-api.{{ tpl .Values.global.registryHostname $ }}'
   replicaCount: 1
   autoscaling:
     enabled: false
@@ -503,7 +505,7 @@ agentPortalApi:
   openapiRootPath: /
 
   # Inji Certify base URL + credential config the API pushes to.
-  certifyBaseUrl: 'http://commons-services-injiCertify-certify/v1/certify'
+  certifyBaseUrl: 'http://commons-services-injicertify/v1/certify'
   certifyCredentialConfigId: 'OpenG2PBeneficiaryCredential'
 
   service:
