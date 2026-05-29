@@ -86,6 +86,24 @@ global:
   # unauthorized access for security review.
   auditAnonymousFailures: true
 
+  # ---------------------------------------------------------------------------
+  # AWE (Approval Workflow Engine) — installed as part of the Registry platform
+  # via the openg2p-awe subchart. These globals OVERRIDE the awe chart's own
+  # defaults so AWE's resources do NOT collide with the registry's.
+  #
+  # IMPORTANT: AWE's chart defaults its DB name / secret to just `<release>`,
+  # which is IDENTICAL to registryDB / registryDBSecret above. Left unchanged,
+  # AWE's postgres-init would create a database and Secret with the same names
+  # as the registry's, clashing on install. We namespace everything with an
+  # `_awe` / `-awe` suffix so the two coexist under one release.
+  # ---------------------------------------------------------------------------
+  aweHostname: 'awe-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
+  aweDB: '{{ printf "%s_awe" .Release.Name | replace "-" "_" }}'
+  aweDBPort: 5432
+  aweDBUser: '{{ printf "%s_awe_user" .Release.Name | replace "-" "_" }}'
+  aweDBSecret: '{{ .Release.Name }}-awe'
+  aweDBUserPasswordKey: '{{ .Release.Name }}-awe-db-user'
+
 # Logging — ships openg2p pod logs (as JSON) to the OpenSearch Output
 # installed by openg2p-commons-base via Fluent Operator.
 logging:
@@ -1035,3 +1053,34 @@ idgenerator:
       poolCheckIntervalSeconds: 30
       exhaustionMaxAttempts: 1000
       subBatchSize: 10000
+
+# ---------------------------------------------------------------------------
+# AWE — Approval Workflow Engine (openg2p-awe subchart).
+#
+# Installed as part of the Registry platform. The subchart ships sensible
+# defaults for the backend, UI, Keycloak clients (awe-admin-portal,
+# awe-admin-resolver) and Istio routing — we only override what must differ
+# when AWE runs UNDER the registry release rather than standalone:
+#
+#   1. enabled            — gates the dependency (Chart.yaml condition).
+#   2. postgres-init      — distinct nameOverride so AWE's DB-provisioning
+#                           Job + ServiceAccount don't collide with the
+#                           registry's own postgres-init (both default to
+#                           `<release>-postgres-init`).
+#   3. keycloak-init      — distinct nameOverride so AWE's client-provisioning
+#                           Job + ConfigMap don't collide with the registry's
+#                           own keycloak-init (both default to
+#                           `<release>-keycloak-init-<revision>`).
+#
+# AWE's DB/secret names are namespaced via the `awe*` globals above. Its
+# Keycloak client IDs (awe-admin-portal / awe-admin-resolver) already differ
+# from the registry's (registry-staff-portal), so those Secrets don't clash.
+# ---------------------------------------------------------------------------
+openg2p-awe:
+  enabled: true
+  postgres-init:
+    enabled: true
+    nameOverride: awe-pg-init
+  keycloak-init:
+    enabled: true
+    nameOverride: awe-kc-init

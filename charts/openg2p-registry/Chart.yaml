@@ -2,7 +2,7 @@ apiVersion: v2
 name: openg2p-registry
 description: A Helm chart for OpenG2P Registry Gen2
 type: application
-version: 4.1.0-develop
+version: 4.2.0-develop
 dependencies:
 - name: common
   repository: https://openg2p.github.io/openg2p-helm
@@ -24,6 +24,11 @@ dependencies:
   version: 1.1.1
   repository: https://openg2p.github.io/openg2p-helm
   condition: keycloak-init.enabled
+# Approval Workflow Engine — installed as part of the Registry platform.
+- name: openg2p-awe
+  version: 0.0.0-develop
+  repository: https://openg2p.github.io/openg2p-helm
+  condition: openg2p-awe.enabled
 icon: https://openg2p.github.io/openg2p-helm/openg2p-logo.png
 keywords:
   - openg2p-registry
