@@ -47,6 +47,26 @@ global:
   # Master Data API internal URL
   masterDataApiUrl: 'http://commons-services-master-data-api'
 
+  # AWE integration (shared staff realm; pairs with openg2p-awe release in namespace)
+  aweEnabled: true
+  aweBaseUrl: 'https://awe.{{ .Release.Namespace }}.openg2p.org'
+  aweCallbackSecretId: 'registry'
+  aweHttpTimeoutSeconds: 30
+  aweWebhookTimestampToleranceSeconds: 300
+  # K8s Secret for AWE webhook HMAC verification — created by postgres-init (see
+  # postgres-init.databases) on first install, same pattern as registryDBSecret.
+  aweCallbackHmacSecretName: 'registry-awe-callback-hmac'
+  aweCallbackHmacSecretKey: 'hmac-secret'
+  aweApproverUserPassword: 'Changeme123!'
+  # AWE Postgres (separate service DB — seeded by implementation db-seed image, e.g. farmer-registry-db-seed)
+  aweDB: 'awe'
+  aweDBPort: 5432
+  aweDBUser: 'awe_user'
+  aweDBSecret: 'awe'
+  aweDBUserPasswordKey: 'awe-db-user'
+  # Helm release name of openg2p-awe (for post-install health wait)
+  aweReleaseName: 'awe'
+
   # ID Generator
   idGeneratorHostname: 'idgenerator-{{ .Release.Name }}.{{ .Release.Namespace }}.openg2p.org'
   idGeneratorApiUrl: 'https://{{ tpl .Values.global.idGeneratorHostname $ }}/v1'
@@ -106,6 +126,12 @@ postgres-init:
       secretUserPasswordKey: '{{ tpl .Values.global.registryDBUserPasswordKey $ }}'
       extensions:
         - 'pg_trgm'
+    # Re-run postgres-init against the registry DB to provision the AWE callback
+    # HMAC secret (idempotent). Secret is referenced by staff-portal-api and db-seed.
+    - name: '{{ tpl .Values.global.registryDB $ }}'
+      user: '{{ tpl .Values.global.registryDBUser $ }}'
+      secret: '{{ tpl .Values.global.aweCallbackHmacSecretName $ }}'
+      secretUserPasswordKey: '{{ .Values.global.aweCallbackHmacSecretKey }}'
 
 partnerApi:
   enabled: true
@@ -480,6 +506,14 @@ staffPortalApi:
     REGISTRY_STAFF_PORTAL_API_AUDIT_MANAGER_URL: '{{ .Values.global.auditManagerUrl }}'
     REGISTRY_STAFF_PORTAL_API_AUDIT_ANONYMOUS_FAILURES: '{{ .Values.global.auditAnonymousFailures }}'
 
+    # Maps to openg2p_registry_core.config.Settings (awe_*), via staff-portal prefix.
+    REGISTRY_STAFF_PORTAL_API_AWE_ENABLED: '{{ .Values.global.aweEnabled }}'
+    REGISTRY_STAFF_PORTAL_API_AWE_BASE_URL: '{{ tpl .Values.global.aweBaseUrl $ }}'
+    REGISTRY_STAFF_PORTAL_API_AWE_HTTP_TIMEOUT_SECONDS: '{{ .Values.global.aweHttpTimeoutSeconds }}'
+    REGISTRY_STAFF_PORTAL_API_AWE_DEFAULT_CALLBACK_URL: 'https://{{ tpl .Values.staffPortalApi.hostname $ }}/awe/webhooks/decision'
+    REGISTRY_STAFF_PORTAL_API_AWE_CALLBACK_SECRET_ID: '{{ .Values.global.aweCallbackSecretId }}'
+    REGISTRY_STAFF_PORTAL_API_AWE_WEBHOOK_TIMESTAMP_TOLERANCE_SECONDS: '{{ .Values.global.aweWebhookTimestampToleranceSeconds }}'
+
   envVarsFrom:
     REGISTRY_STAFF_PORTAL_API_DB_PASSWORD:
       secretKeyRef:
@@ -497,6 +531,10 @@ staffPortalApi:
       secretKeyRef:
         name: '{{ tpl .Values.global.minioSecret $ }}'
         key: '{{ tpl .Values.global.minioSecretKey $ }}'
+    REGISTRY_STAFF_PORTAL_API_AWE_CALLBACK_HMAC_SECRET:
+      secretKeyRef:
+        name: '{{ tpl .Values.global.aweCallbackHmacSecretName $ }}'
+        key: '{{ .Values.global.aweCallbackHmacSecretKey }}'
 
   startupProbe:
     enabled: true
@@ -858,6 +896,86 @@ keycloak-init:
         # IMPORTANT: It is assumed that admin has already been created as part
         # of commons layer
         - username: admin
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: alex.carter
+          email: alex.carter@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: maya.reed
+          email: maya.reed@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: nina.patel
+          email: nina.patel@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: omar.sheikh
+          email: omar.sheikh@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: zara.khan
+          email: zara.khan@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: chipo.banda
+          email: chipo.banda@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: tendai.moyo
+          email: tendai.moyo@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: hana.bekele
+          email: hana.bekele@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: tesfaye.mekonnen
+          email: tesfaye.mekonnen@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
+          clientRoleMappings:
+            registry-staff-portal:
+              - "Operations Administrator"
+              - "Technical Administrator"
+        - username: mwansa.tembo
+          email: mwansa.tembo@email.com
+          password: '{{ .Values.global.aweApproverUserPassword }}'
+          enabled: true
           clientRoleMappings:
             registry-staff-portal:
               - "Operations Administrator"
